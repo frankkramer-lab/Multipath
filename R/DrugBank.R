@@ -1,4 +1,5 @@
 #' Load DrugBank XML file
+#' @note
 #' This function should be called before using any function to query the DrugBank database. Since the parsing of DrugBank takes time, this function should only be called once.
 #' 
 #' @param file the path to the DrugBank XML file. This can be downloaded from the DrugBank official Website (drugbank.ca). An account with an institutional e-mail is required.
@@ -14,8 +15,8 @@ loadDBXML<-function(file){
 
 #' Get DrugBank drug entry
 #'
-#' @param data the dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile) 
-#' @param drug the ID or list of IDs of the DrugBank drug entries starting with "DB"
+#' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile) 
+#' @param drug The ID or list of IDs of the DrugBank drug entries starting with "DB"
 #'
 #' @return a dataframe containing the DrugBank entry with its information
 #' @export
@@ -25,8 +26,8 @@ loadDBXML<-function(file){
 #' getDBDrug(data, "DB00001")
 getDBDrug<-function(data,drug){
   drugs=as.data.frame(data[[1]])
-  entry=drugs[which(drugs$primary_key%in%drug),]
-  if(dim(entry)[1]==0){
+  entry=drugs[which(drugs$'primary_key'%in%drug),]
+  if(length(entry)==0){
     warning("The given DrugBank ID does not exist")
     return(NULL)
   }
@@ -37,8 +38,8 @@ getDBDrug<-function(data,drug){
 
 #' Get DrugBank Drug to Drug Interactions 
 #'
-#' @param data the dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile) 
-#' @param drug the ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).
+#' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile) 
+#' @param drug The ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).
 #'
 #' @return a dataframe containing the DrugBank interactions in which the given drug is involved
 #' @export
@@ -66,9 +67,9 @@ getDBDrugInteractions<-function(data,drug){
 
 #' Add a drug layer to a mully graph
 #'
-#' @param g the mully graph
-#' @param drugList the list of DrugBank Ids of the drugs to be added
-#' @param data the dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
+#' @param g The mully graph
+#' @param drugList The list of DrugBank Ids of the drugs to be added
+#' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
 #'
 #' @return a mully graph with the added drug layer
 #' @export
@@ -76,12 +77,15 @@ getDBDrugInteractions<-function(data,drug){
 #' @examples addDBLayer(mully("DrugBank",direct=T,c("DB00001","DB06605"),data))
 addDBLayer<-function(g,data,drugList){
   dbmully=addLayer(g,"drugs")
+  print(drugList)
   drugs=getDBDrug(data,drugList)
-  interactions=getDBDrugInteractions(data,drugList)
+  interactions=getDBDrugInteractions(data,drugs$'primary_key')
   #Add Drugs' nodes
   for (i in 1:dim(drugs)[1]) {
-    attr=list(dbid=drugs$'primary_key'[i],type=drugs$type[i])
-    dbmully=addNode(dbmully,nodeName = drugs$name[i],layerName = "drugs",attributes = attr)
+    attrList=drugs[i,]
+    attr=as.list(attrList)
+    names(attr)=names(drugs)
+    dbmully=mully::addNode(dbmully,nodeName = drugs$'primary_key'[i],layerName = "drugs",attributes = attr[-1])
   }
   
   interactions=getDBDrugInteractions(data,drugList)
@@ -91,7 +95,7 @@ addDBLayer<-function(g,data,drugList){
     startName=V(dbmully)[which(V(dbmully)$dbid == interactions$'drugbank-id'[i])]$name
     endName=V(dbmully)[which(V(dbmully)$dbid == interactions$'parent_key'[i])]$name
     if(!is.null(startName) & !is.null(endName) & length(startName)!=0 & length(endName)!=0 )
-      dbmully=addEdge(dbmully,startName,endName,attributes = list(description=interactions$description[i]))
+      dbmully=mully::addEdge(dbmully,startName,endName,attributes = list(description=interactions$description[i]))
   }
   return(dbmully)
 }
@@ -263,4 +267,3 @@ getDBCarriers<-function(data,drugList){
 # for(i in 1:72){
 #   any(duplicated(data[[i]]$`drugbank-id`))
 # }
-# n
