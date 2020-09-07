@@ -1,9 +1,16 @@
-data.frame(ID = is.numeric(c()), Name = is.character(c()), NameLower = is.character(c()), stringsAsFactors = FALSE)
-
-up <- UniProt.ws()
-
-
-
+#' Get all proteins' entries from UniProt
+#'
+#' @param up The UniProt.ws Object
+#'
+#' @return a dataframe containing the Protein's entries with the ID and Name
+#' @export
+#'
+#'
+#' @note
+#' Should be preceded by UniProt.ws() to get the UniProt.ws Object
+#' @examples
+#' up=UniProt.ws()
+#' allProteins=getAllUPKB(up)
 getAllUPKB <- function(up){
   entriesList=keys(up,"UNIPROTKB")
   return(getUPKBInfo(up,entriesList,c("PROTEIN-NAMES")))
@@ -22,34 +29,103 @@ getAllUPKB <- function(up){
 #' @note
 #' Should be preceded by UniProt.ws() to get the UniProt.ws Object
 #' @examples
-#' getUPKBInfo(c("Q6ZS62","P14384","P40259"),c("PROTEIN-NAMES","DRUGBANK","GO","REACTOME"))
+#' up <- UniProt.ws()
+#' getUPKBInfo(up,c("Q6ZS62","P14384","P40259"),c("PROTEIN-NAMES","DRUGBANK","GO","REACTOME"))
 #' To get the list of possible columns, you can call columns(UniProt.ws())
 getUPKBInfo <- function(up,proteins,col){
   dfProt=data.frame(as.list(c("UNIPROTKB",col)),stringsAsFactors = FALSE)
   dfProt=dfProt[-1,]
   names(dfProt)=c("UNIPROTKB",col)
+  skip=F
   for(i in 1:length(proteins)){
+    skip=F
     upID=proteins[i]
-    row=select(up,columns=col,keys=upID,keytype="UNIPROTKB")
-    dfProt=rbind(dfProt,row)
+    #tryCatch to skip errors for non-UniProtKB IDs
+    tryCatch({
+      row=select(up,columns=col,keys=upID,keytype="UNIPROTKB")
+      dfProt=rbind(dfProt,row)
+    },error=function(e){
+        skip=T
+        warning(paste("The following Protein ID does not exist and will be skipped:",upID))
+      },finally={
+        if(skip==T)
+          next()
+        }
+      )
   }
-
   return(dfProt)
 }
 
-
-#load Uniprot
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-
-BiocManager::install("UniProt.ws")
-help("UniProt.ws")
-##default taxId is Homo Sapiens
-up <- UniProt.ws()
-entries=keys(up,"UNIPROTKB")
-data.frame(ID = is.numeric(c()), Name = is.character(c()), NameLower = is.character(c()), stringsAsFactors = FALSE)
-
-for(i in 1:length(entries)){
-
+#' Get the interactions of given proteins from UniProt
+#'
+#' @param up The UniProt.ws Object
+#' @param proteins The list of proteins of which the interactions should be retrieved
+#'
+#' @return a dataframe containing the interactions between the given proteins
+#' @export
+#' 
+#' 
+#' @note
+#' Should be preceded by UniProt.ws() to get the UniProt.ws Object
+#' @examples
+#' up=UniProt.ws()
+#' interactions=getUPKBInteractions(up,c("P02747","P07204","P00734"))
+getUPKBInteractions<-function(up,proteins){
+  allInteractions=getUPKBInfo(up,proteins,c("UNIPROTKB","INTERACTOR"))
+  interactions=data.frame(V1=is.character(c()),V2=is.character(c()),stringsAsFactors = F)[-1,]
+  for(i in 1:dim(allInteractions)[1]){
+    listInter=as.list(str_split(allInteractions[i,2],'; '))
+    listInter=listInter[[1]]
+    listInter=listInter[which(listInter%in%proteins)]
+    if(length(listInter)==0)
+      next()
+    for(j in 1:length(listInter)){
+      entry=c(allInteractions[i,1],listInter[j])
+      if(rev(entry)%in%interactions)
+        next()
+      interactions[dim(interactions)[1]+1,]=entry
+    }
+  }
+  return(interactions)
 }
 
+#' Add a protein layer to a mully graph
+#'
+#' @param g The mully graph
+#' @param up The UniProt.ws Object
+#' @param proteinList the list of UniProt Ids of the proteins to be added
+#' @param col The list of attributes associated to the UniProtKB Entries to be retrieved
+#'
+#' @return
+#' @export
+#'
+#'
+#' @note
+#' Should be preceded by UniProt.ws() to get the UniProt.ws Object
+#' @examples
+#' up=UniProt.ws()
+#' g=mully("UniProt")
+#' g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
+addUPKBLayer<-function(g,up,proteinList,col=c("UNIPROTKB","PROTEIN-NAMES","ORGANISM")){
+  upmully=addLayer(g,"UniProt")
+  columns=unique(append(c("UNIPROTKB"),col))
+  proteins=getUPKBInfo(up,proteinList,columns)
+  interactions=getUPKBInteractions(up,proteins$UNIPROTKB)
+
+  #Add Proteins' Nodes
+  for (i in 1:dim(proteins)[1]) {
+    attrList=proteins[i,]
+    attr=as.list(attrList)
+    names(attr)=columns
+    upmully=mully::addNode(upmully,nodeName = proteins$'UNIPROTKB'[i],layerName = "UniProt",attributes = attr[-1])
+  }
+  
+  #Add Proteins' interactions
+  for (i in 1:dim(interactions)[1]) {
+    startName=V(upmully)[which(V(upmully)$name == interactions$'V1'[i])]$name
+    endName=V(upmully)[which(V(upmully)$name == interactions$'V2'[i])]$name
+    if(!is.null(startName) & !is.null(endName) & length(startName)!=0 & length(endName)!=0 )
+      upmully=mully::addEdge(upmully,startName,endName,list(source="UniProtKB"))
+  }
+  return(upmully)
+}
