@@ -93,13 +93,13 @@ getUPKBInteractions<-function(up,proteins){
 #'
 #' @param g The mully graph
 #' @param up The UniProt.ws Object
-#' @param proteinList the list of UniProt Ids of the proteins to be added
+#' @param proteinList The list of UniProt Ids of the proteins to be added
 #' @param col The list of attributes associated to the UniProtKB Entries to be retrieved
 #'
-#' @return
+#' @return The mully graph with the added UniProt layer
 #' @export
 #'
-#'
+#' 
 #' @note
 #' Should be preceded by UniProt.ws() to get the UniProt.ws Object
 #' @examples

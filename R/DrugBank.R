@@ -1,11 +1,12 @@
 #' Load DrugBank XML file
+#' 
+#' @param file The path to the DrugBank XML file. This can be downloaded from the DrugBank official Website (drugbank.ca). An account with an institutional e-mail is required.
+#'
+#' @return A dataframe containing the parsed information from DrugBank. This can be used to extract any additional information on the DrugBank entries
+#' @export
+#'
 #' @note
 #' This function should be called before using any function to query the DrugBank database. Since the parsing of DrugBank takes time, this function should only be called once.
-#' 
-#' @param file the path to the DrugBank XML file. This can be downloaded from the DrugBank official Website (drugbank.ca). An account with an institutional e-mail is required.
-#'
-#' @return a dataframe containing the parsed information from DrugBank. This can be used to extract any additional information on the DrugBank entries
-#' @export
 #'
 loadDBXML<-function(file){
   read_drugbank_xml_db(file)
@@ -18,7 +19,7 @@ loadDBXML<-function(file){
 #' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile) 
 #' @param drug The ID or list of IDs of the DrugBank drug entries starting with "DB"
 #'
-#' @return a dataframe containing the DrugBank entry with its information
+#' @return A dataframe containing the DrugBank entry with its information
 #' @export
 #'
 #' @examples 
@@ -41,10 +42,11 @@ getDBDrug<-function(data,drug){
 #' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile) 
 #' @param drug The ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).
 #'
-#' @return a dataframe containing the DrugBank interactions in which the given drug is involved
+#' @return A dataframe containing the DrugBank interactions in which the given drug is involved
 #' @export
 #'
-#' @examples getDBDrugInteractions(data,"DB06605")
+#' @examples 
+#' getDBDrugInteractions(data,"DB06605")
 getDBDrugInteractions<-function(data,drug){
   if(!is.list(drug))
     drugs=c(drug)
@@ -68,13 +70,14 @@ getDBDrugInteractions<-function(data,drug){
 #' Add a drug layer to a mully graph
 #'
 #' @param g The mully graph
-#' @param drugList The list of DrugBank Ids of the drugs to be added
+#' @param drugList The list of DrugBank Ids of the drugs to be added. This argument can be either a string (one drug) or a list of strings (multiple drugs)
 #' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
 #'
-#' @return a mully graph with the added drug layer
+#' @return A mully graph with the added drug layer
 #' @export
 #'
-#' @examples addDBLayer(mully("DrugBank",direct=T,c("DB00001","DB06605"),data))
+#' @examples
+#' addDBLayer(mully("DrugBank",direct=T,c("DB00001","DB06605"),data))
 addDBLayer<-function(g,data,drugList){
   dbmully=addLayer(g,"drugs")
   print(drugList)
@@ -102,10 +105,10 @@ addDBLayer<-function(g,data,drugList){
 
 #' Get the targets of given DrugBank drugs
 #'
-#' @param data  the dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
-#' @param drugList the list of DrugBank Ids of the drugs
+#' @param data  The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
+#' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
 #'
-#' @return the dataframe containing all information on the tragets of the given drug list
+#' @return A dataframe containing all information on the tragets of the given drug list
 #' @export
 #'
 #' @examples
@@ -118,28 +121,24 @@ getDBTargets<-function(data,drugList){
   #Get Targets' infos
   polypeptides=as.data.frame(data[["targets_polypeptides"]])
   infos=polypeptides[which(polypeptides$'parent_id'%in%targets$id),]
-  
-  # #Get Target's action
-  # allActions=as.data.frame(data[[targets_actions]])
-  # actions=allActions[which()]
-  
+
   #Join the dataframes
   result=merge.data.frame(targets,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UnniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"target_id"
-  colnames(result)[which(colnames(result)=="name")]<-"target_name"
+  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
+  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
 
 #' Get the enzymes inhibited/induced or involved in metabolism by given DrugBank drugs
 #'
-#' @param data  the dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
-#' @param drugList the list of DrugBank Ids of the drugs
+#' @param data  The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
+#' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
 #'
-#' @return the dataframe containing all information on the enzymes inhibited/induced or involved in metabolism by the given drug list
+#' @return A dataframe containing all information on the enzymes inhibited/induced or involved in metabolism by the given drug list
 #' @export
 #'
 #' @examples
@@ -152,29 +151,25 @@ getDBEnzymes<-function(data,drugList){
   #Get Targets' infos
   polypeptides=as.data.frame(data[["enzymes_polypeptides"]])
   infos=polypeptides[which(polypeptides$'parent_id'%in%enzymes$id),]
-  
-  # #Get Enzyme's action
-  # allActions=as.data.frame(data[[enzymes_actions]])
-  # actions=allActions[which()]
-  
+
   #Join the dataframes
   result=merge.data.frame(enzymes,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UnniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"enzyme_id"
-  colnames(result)[which(colnames(result)=="name")]<-"enzyme_name"
+  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
+  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
 
 
 #' Get the transporter proteins involved in movement of given drugs across biological membranes
 #'
-#' @param data  the dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
-#' @param drugList the list of DrugBank Ids of the drugs
+#' @param data  The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
+#' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
 #'
-#' @return the dataframe containing all information on the transporter proteins involved in movement of the given drugs across biological membranes
+#' @return A dataframe containing all information on the transporter proteins involved in movement of the given drugs across biological membranes
 #' @export
 #'
 #' @examples
@@ -188,27 +183,23 @@ getDBTransporters<-function(data,drugList){
   polypeptides=as.data.frame(data[["transporters_polypeptides"]])
   infos=polypeptides[which(polypeptides$'parent_id'%in%transporters$id),]
   
-  # #Get Transporter's action
-  # allActions=as.data.frame(data[[transporters_actions]])
-  # actions=allActions[which()]
-  
   #Join the dataframes
   result=merge.data.frame(transporters,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UnniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"transporter_id"
-  colnames(result)[which(colnames(result)=="name")]<-"transporter_name"
+  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
+  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
 
 #' Get the carrier proteins involved in movement of given drugs across biological membranes
 #'
-#' @param data  the dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
-#' @param drugList the list of DrugBank Ids of the drugs
+#' @param data  The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
+#' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
 #'
-#' @return the dataframe containing all information on the carrier proteins involved in movement of the given drugs across biological membranes
+#' @return A dataframe containing all information on the carrier proteins involved in movement of the given drugs across biological membranes
 #' @export
 #'
 #' @examples
@@ -231,9 +222,9 @@ getDBCarriers<-function(data,drugList){
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UnniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"carrier_id"
-  colnames(result)[which(colnames(result)=="name")]<-"carrier_name"
+  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
+  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
 
