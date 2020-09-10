@@ -80,7 +80,6 @@ getDBDrugInteractions<-function(data,drug){
 #' addDBLayer(mully("DrugBank",direct=T,c("DB00001","DB06605"),data))
 addDBLayer<-function(g,data,drugList){
   dbmully=addLayer(g,"drugs")
-  print(drugList)
   drugs=getDBDrug(data,drugList)
   interactions=getDBDrugInteractions(data,drugs$'primary_key')
   #Add Drugs' nodes
@@ -91,7 +90,6 @@ addDBLayer<-function(g,data,drugList){
     dbmully=mully::addNode(dbmully,nodeName = drugs$'primary_key'[i],layerName = "drugs",attributes = attr[-1])
   }
   
-  interactions=getDBDrugInteractions(data,drugList)
   #Add Drugs' interactions
   for (i in 1:dim(interactions)[1]) {
     
@@ -212,11 +210,7 @@ getDBCarriers<-function(data,drugList){
   #Get Carriers' infos
   polypeptides=as.data.frame(data[["carriers_polypeptides"]])
   infos=polypeptides[which(polypeptides$'parent_id'%in%carriers$id),]
-  
-  # #Get Carrier's action
-  # allActions=as.data.frame(data[[carriers_actions]])
-  # actions=allActions[which()]
-  
+
   #Join the dataframes
   result=merge.data.frame(carriers,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
   

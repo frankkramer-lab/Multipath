@@ -15,8 +15,7 @@
 #' getUPKBtoDB(up,c("P02747","P00734","P07204"),c("DB00001","DB00002"))
 getUPKBtoDB<-function(up,proteinList,drugList){
   allRelations=getUPKBInfo(up,proteinList,col = c("UNIPROTKB","DRUGBANK"))
-  print(names(allRelations))
-  relations=allRelations[which(allRelations$'DRUGBANK'%in%drugList)]
+  relations=allRelations[which(allRelations$'DRUGBANK'%in%drugList),]
   return(relations)
 }
 
