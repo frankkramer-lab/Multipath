@@ -34,6 +34,7 @@ getDBDrug<-function(data,drug){
   }
   if(dim(entry)[1]!=length(drug))
     warning("Some of the given IDs are not DrugBank IDs and will be skipped.")
+  names(entry)[which(names(entry)=="name")]="dbname"
   return(entry)
 }
 
@@ -77,27 +78,33 @@ getDBDrugInteractions<-function(data,drug){
 #' @export
 #'
 #' @examples
-#' addDBLayer(mully("DrugBank",direct=T,c("DB00001","DB06605"),data))
+#' addDBLayer(mully("DrugBank",direct=T),data,c("DB00001","DB06605"))
 addDBLayer<-function(g,data,drugList){
   dbmully=addLayer(g,"drugs")
   drugs=getDBDrug(data,drugList)
   interactions=getDBDrugInteractions(data,drugs$'primary_key')
   #Add Drugs' nodes
+  message("Multipath: Adding Drugs Nodes")
   for (i in 1:dim(drugs)[1]) {
+    progress(i,progress.bar = T)
     attrList=drugs[i,]
     attr=as.list(attrList)
     names(attr)=names(drugs)
     dbmully=mully::addNode(dbmully,nodeName = drugs$'primary_key'[i],layerName = "drugs",attributes = attr[-1])
   }
   
+  message("Multipath: DONE - Drugs Nodes Added")
+  
   #Add Drugs' interactions
+  message("Multipath: Adding Drugs' Interactions")
   for (i in 1:dim(interactions)[1]) {
-    
-    startName=V(dbmully)[which(V(dbmully)$dbid == interactions$'drugbank-id'[i])]$name
-    endName=V(dbmully)[which(V(dbmully)$dbid == interactions$'parent_key'[i])]$name
+    progress(i,progress.bar = T)
+    startName=V(dbmully)[which(V(dbmully)$name == interactions$'drugbank-id'[i])]$name
+    endName=V(dbmully)[which(V(dbmully)$name == interactions$'parent_key'[i])]$name
     if(!is.null(startName) & !is.null(endName) & length(startName)!=0 & length(endName)!=0 )
       dbmully=mully::addEdge(dbmully,startName,endName,attributes = list(description=interactions$description[i]))
   }
+  message("Multipath: DONE - Drugs' Interactions Added")
   return(dbmully)
 }
 
@@ -125,8 +132,8 @@ getDBTargets<-function(data,drugList){
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
+  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
   colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
@@ -155,8 +162,8 @@ getDBEnzymes<-function(data,drugList){
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
+  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
   colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
@@ -186,8 +193,8 @@ getDBTransporters<-function(data,drugList){
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
+  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
   colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
@@ -216,8 +223,8 @@ getDBCarriers<-function(data,drugList){
   
   #Rename columns
   colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"UniProtKB_id"
-  colnames(result)[which(colnames(result)=="id")]<-"id"
+  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
+  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
   colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }

@@ -61,7 +61,7 @@ getUPKBInfo <- function(up,proteins,col){
 #' @param up The UniProt.ws Object
 #' @param proteins The list of proteins of which the interactions should be retrieved
 #'
-#' @return a dataframe containing the interactions between the given proteins
+#' @return A dataframe containing the interactions between the given proteins
 #' @export
 #' 
 #' 
@@ -113,19 +113,24 @@ addUPKBLayer<-function(g,up,proteinList,col=c("UNIPROTKB","PROTEIN-NAMES","ORGAN
   interactions=getUPKBInteractions(up,proteins$UNIPROTKB)
 
   #Add Proteins' Nodes
+  message("Multipath: Adding Protein Nodes")
   for (i in 1:dim(proteins)[1]) {
+    progress(i,progress.bar = T)
     attrList=proteins[i,]
     attr=as.list(attrList)
     names(attr)=columns
     upmully=mully::addNode(upmully,nodeName = proteins$'UNIPROTKB'[i],layerName = "UniProt",attributes = attr[-1])
   }
-  
+  message("Multipath: DONE - Protein Nodes Added")
   #Add Proteins' interactions
+  message("Multipath: Adding Proteins' Interactions")
   for (i in 1:dim(interactions)[1]) {
+    progress(i,progress.bar = T)
     startName=V(upmully)[which(V(upmully)$name == interactions$'V1'[i])]$name
     endName=V(upmully)[which(V(upmully)$name == interactions$'V2'[i])]$name
     if(!is.null(startName) & !is.null(endName) & length(startName)!=0 & length(endName)!=0 )
       upmully=mully::addEdge(upmully,startName,endName,list(source="UniProtKB"))
   }
+  message("Multipath: Adding Proteins' Interactions")
   return(upmully)
 }
