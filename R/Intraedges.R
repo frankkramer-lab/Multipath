@@ -16,6 +16,8 @@
 getUPKBtoDB<-function(up,proteinList,drugList){
   allRelations=getUPKBInfo(up,proteinList,col = c("UNIPROTKB","DRUGBANK"))
   relations=allRelations[which(allRelations$'DRUGBANK'%in%drugList),]
+  names(relations)=c("upid","dbid")
+  relations=relations[order(relations$upid),]
   return(relations)
 }
 
@@ -35,7 +37,7 @@ getDBtoUPKB<-function(data,drugList,proteinList){
   
   #Get Targets
   allTargets=getDBTargets(data,drugList)
-  targets=allTargets[which(allTargets$'UniProtKB_id'%in%proteinList),]
+  targets=allTargets[which(allTargets$'upid'%in%proteinList),]
   if(dim(targets)[1]>0){
     targets$type="Target"
     l[[length(l)+1]]=targets
@@ -43,7 +45,7 @@ getDBtoUPKB<-function(data,drugList,proteinList){
   
   #Get Enzymes
   allEnzymes=getDBEnzymes(data,drugList)
-  enzymes=allEnzymes[which(allEnzymes$'UniProtKB_id'%in%proteinList),]
+  enzymes=allEnzymes[which(allEnzymes$'upid'%in%proteinList),]
   if(dim(enzymes)[1]>0){
     enzymes$type="Enzyme"
     l[[length(l)+1]]=enzymes
@@ -51,7 +53,7 @@ getDBtoUPKB<-function(data,drugList,proteinList){
   
   #Get Transporters
   allTransporters=getDBTransporters(data,drugList)
-  transporters=allTransporters[which(allTransporters$'UniProtKB_id'%in%proteinList),]
+  transporters=allTransporters[which(allTransporters$'upid'%in%proteinList),]
   if(dim(transporters)[1]>0){
     transporters$type="Transporter"
     l[[length(l)+1]]=transporters
@@ -59,7 +61,7 @@ getDBtoUPKB<-function(data,drugList,proteinList){
   
   #Get Carriers
   allCarriers=getDBCarriers(data,drugList)
-  carriers=allCarriers[which(allCarriers$'UniProtKB_id'%in%proteinList),]
+  carriers=allCarriers[which(allCarriers$'upid'%in%proteinList),]
   if(dim(carriers)[1]>0){
     carriers$type="Carrier"
     l[[length(l)+1]]=carriers
@@ -77,5 +79,38 @@ getDBtoUPKB<-function(data,drugList,proteinList){
    lnames=intersect(names(relations),names(l[[i]]))
    relations=merge.data.frame(relations,l[[i]],by=lnames,all=T) 
   }
+  relations=relations[order(relations$dbid),]
+  return(relations)
+}
+
+#' Get Protein and Drugs relations from UniProt and DrugBank
+#'
+#' @param up The UniProt.ws Object
+#' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
+#' @param proteinList The list of UniProt Ids of the proteins
+#' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
+#'
+#' @return A dataframe containing the connections between DrugBank drugs and UniProt proteins retrieved from DrugBank and UniProt
+#' @export
+#' 
+#' 
+#' @note
+#' Should be preceded by:
+#' 1. UniProt.ws() to get the UniProt.ws Object
+#' 2. loadDBXML(DrugBankFile) to get the argument data
+#' @examples
+#' up=UniProt.ws()
+#' data=loadDBXML("DrugBankFile.xml")
+#' relations=getUPKBDBRelations(up,data,proteinList= c("P02747","P00734","P07204","P05164"),drugList=c("DB00001","DB00002","DB00006"))
+getUPKBDBRelations<-function(up,data,proteinList,drugList){
+  upkbtodb=getUPKBtoDB(up,proteinList,drugList)
+  dbtoupkb=getDBtoUPKB(data,drugList,proteinList)
+  lnames=intersect(names(upkbtodb),names(dbtoupkb))
+  upkbtodb$source="UniProt"
+  dbtoupkb$source="DrugBank"
+  relations=merge.data.frame(upkbtodb,dbtoupkb[ ,c("dbid","upid","type","dbproteinid","source")],by=lnames,all=T)
+  relations$source=paste(relations$'source.x'," ",relations$'source.y')
+  relations=relations[,c("dbid","upid","type","dbproteinid","source")]
+  relations=relations[order(relations$dbid),]
   return(relations)
 }
