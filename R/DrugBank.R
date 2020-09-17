@@ -228,34 +228,3 @@ getDBCarriers<-function(data,drugList){
   colnames(result)[which(colnames(result)=="name")]<-"name"
   return(result)
 }
-
-# addDBTargetLayer<-function(g,data,drugList){
-#   dbmully=addLayer(g,"targets")
-#   drugs=getDBDrug(data,drugList)
-# 
-#   targets=data[["drug_targets"]]
-#   #Add Targets' nodes and relations to Drugs
-#   for (i in 1:dim(targets)[1]) {
-#     targetName=targets$name[i]
-#     idTarget=getIDNode(dbmully,nameNode = targetName)
-#     if(is.null(idTarget)){
-#       attr=list(beid=targets$id[i],organism=targets$organism[i])
-#       dbmully=addNode(dbmully,nodeName = targets$name[i],layerName = "targets",attributes = attr)
-#       idTarget=getIDNode(dbmully,nameNode = targetName)
-#     }
-#     nameDrug=V(dbmully)[which(V(dbmully)$dbid == targets$parent_key[i])]$name
-#     if(!is.null(nameDrug)){
-#       dbmully=addEdge(dbmully,nameDrug,targetName,attributes = list(type="bind"))
-#     }
-#   }
-#   return(dbmully)
-# }
-
-# dbmully=mully("DrugBank",direct = T)
-# dbmully=addLayer(dbmully,c("drugs","targets"))
-# drugs=data[[1]]
-# 
-# drugBank=data
-# for(i in 1:72){
-#   any(duplicated(data[[i]]$`drugbank-id`))
-# }
