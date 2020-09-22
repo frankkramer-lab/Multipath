@@ -39,7 +39,7 @@ getDBDrug<-function(data,drug){
 }
 
 #' Get DrugBank Drug to Drug Interactions 
-#'
+#' 
 #' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile) 
 #' @param drug The ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).
 #'
@@ -116,7 +116,6 @@ addDBLayer<-function(g,data,drugList){
 #' @return A dataframe containing all information on the tragets of the given drug list
 #' @export
 #'
-#' @examples
 getDBTargets<-function(data,drugList){
   drugs=getDBDrug(data,drugList)$'primary_key'
   #Get Targets' list
@@ -146,7 +145,6 @@ getDBTargets<-function(data,drugList){
 #' @return A dataframe containing all information on the enzymes inhibited/induced or involved in metabolism by the given drug list
 #' @export
 #'
-#' @examples
 getDBEnzymes<-function(data,drugList){
   drugs=getDBDrug(data,drugList)$'primary_key'
   #Get Enzymes' list
@@ -177,7 +175,6 @@ getDBEnzymes<-function(data,drugList){
 #' @return A dataframe containing all information on the transporter proteins involved in movement of the given drugs across biological membranes
 #' @export
 #'
-#' @examples
 getDBTransporters<-function(data,drugList){
   drugs=getDBDrug(data,drugList)$'primary_key'
   #Get Transporters' list
@@ -207,7 +204,6 @@ getDBTransporters<-function(data,drugList){
 #' @return A dataframe containing all information on the carrier proteins involved in movement of the given drugs across biological membranes
 #' @export
 #'
-#' @examples
 getDBCarriers<-function(data,drugList){
   drugs=getDBDrug(data,drugList)$'primary_key'
   #Get Carriers' list

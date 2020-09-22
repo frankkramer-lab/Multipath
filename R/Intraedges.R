@@ -4,7 +4,7 @@
 #' @param proteinList The list of UniProt Ids of the proteins
 #' @param drugList The ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).
 #'
-#' @retur A dataframe containing the connections between UniProt proteins and DrugBank drugs retrieved from UniProt
+#' @return A dataframe containing the connections between UniProt proteins and DrugBank drugs retrieved from UniProt
 #' @export
 #'
 #' 

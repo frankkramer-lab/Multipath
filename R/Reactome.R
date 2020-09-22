@@ -9,7 +9,7 @@
 #' @note 
 #' This should be preceded by readBiopax(filepath) to obtain the biopax object
 #' @examples
-#' biopax=readBiopax("pi3k.owl)
+#' biopax=readBiopax("pi3k.owl")
 #' pi3kmully=pathway2mully(biopax,"pathway1")
 pathway2Mully<-function(biopax,pathwayID){
   #Transform created Pathway GraphNEL to igraph object
@@ -32,7 +32,7 @@ pathway2Mully<-function(biopax,pathwayID){
   for(i in 1:length(listNodes)){
     nodeAttributes=getInstanceAttributes(biopax,listNodes[i])
     nodeClass=getInstanceClass(biopax,listNodes[i])
-    pathwaymully=mully::addNode(pathwaymully,listNodes[i],nodeClass,attributes=nodeAttributes[-1])
+    pathwaymully=mully::addNode(pathwaymully,nodeName =  listNodes[i],layerName =  nodeClass,attributes=nodeAttributes[-1])
   } 
   #Add Edges
   edges=as_long_data_frame(pathwayigraph)[,c("from","to")]
