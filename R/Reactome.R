@@ -38,7 +38,7 @@ pathway2Mully<-function(biopax,pathwayID){
   edges=as_long_data_frame(pathwayigraph)[,c("from","to")]
   names(edges)=c("V1","V2")
   edgeAttributes=as.data.frame(edge.attributes(pathwayigraph))
-  for(i in 1:dim(edges[1])){
+  for(i in 1:dim(edges)[1]){
     startNode=listNodes[edges$V1[i]]
     endNode=listNodes[edges$V2[i]]
     attributes=edgeAttributes[i,]
