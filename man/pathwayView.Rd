@@ -17,3 +17,6 @@ An empty view
 \description{
 Create an empty view
 }
+\examples{
+view=pathwayView(mully("myMully",T),"View1")
+}

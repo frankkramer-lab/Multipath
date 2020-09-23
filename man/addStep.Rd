@@ -42,3 +42,8 @@ addStep(
 \description{
 Track a modification of a graph
 }
+\examples{
+g=mully:::demo()
+view=pathwayView(g,"View1")
+view=addStep(view,"remove","layer","")
+}
