@@ -17,11 +17,11 @@ multipath(
 
 \item{up}{The Uniprot.ws() object}
 
-\item{proteinList}{}
+\item{proteinList}{The list of proteins of which the interactions should be retrieved}
 
-\item{data}{}
+\item{data}{The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)}
 
-\item{drugList}{}
+\item{drugList}{The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)}
 }
 \value{
 A mully graph with the added data
