@@ -4,13 +4,10 @@
 \alias{print.pathwayView}
 \title{Print function}
 \usage{
-\method{print}{pathwayView}(pathwayView)
+\method{print}{pathwayView}(v)
 }
 \arguments{
-\item{pathwayView}{The input View to be printed}
-}
-\value{
-
+\item{v}{The input View to be printed}
 }
 \description{
 Print function

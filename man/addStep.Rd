@@ -5,7 +5,7 @@
 \title{Track a modification of a graph}
 \usage{
 addStep(
-  pathwayView,
+  v,
   action,
   element,
   name = NA,
@@ -18,7 +18,7 @@ addStep(
 )
 }
 \arguments{
-\item{pathwayView}{The input view in which the modification should be saved}
+\item{v}{The input view in which the modification should be saved}
 
 \item{action}{The type of action to be applied. Can either be "add" or "remove}
 

@@ -18,52 +18,51 @@ pathwayView<-function(g,name){
   modified=g
   lastStep=0
   steps=data.frame(stepID=is.integer(c()),action=is.character(c()),element=is.character(c()),name=is.character(c()),V1=is.character(c()),V2=is.character(c()),attributesnames=is.list(c()),attributes=is.list(c()),stringsAsFactors=F)[-1,]
-  pathwayView=list("id"=id,"name"=name,"original"=original,"modified"=modified,"lastStep"=lastStep,"steps"=steps,"timestamp"=timestamp,"lastmodified"=timestamp)
-  class(pathwayView)=c("pathwayView",class(pathwayView))
-  return(pathwayView)
+  v=list("id"=id,"name"=name,"original"=original,"modified"=modified,"lastStep"=lastStep,"steps"=steps,"timestamp"=timestamp,"lastmodified"=timestamp)
+  class(v)=c("pathwayView",class(v))
+  return(v)
 }
 
 #' Print function
 #'
-#' @param pathwayView The input View to be printed
+#' @param v The input View to be printed
 #'
-#' @return
 #' @export
 #' 
-print.pathwayView<-function(pathwayView){
-  if(missing(pathwayView))
+print.pathwayView<-function(v){
+  if(missing(v))
     stop("Invalid Argument")
   cat("View")
-  if(!is.na(pathwayView$name)){
-    cat(paste(" -- ",green(pathwayView$name),sep=""))
+  if(!is.na(v$name)){
+    cat(paste(" -- ",green(v$name),sep=""))
   }
-  cat(paste(" -- ",pathwayView$id,sep=""))
-  cat(paste(bold("\nCreated: "),blue(pathwayView$timestamp),sep=""))
-  cat(paste(" -- ",bold("last modified: "),blue(pathwayView$lastmodified),sep=""))
-  cat(paste(bold("\nOriginal Graph: "),green(pathwayView$original$name),sep=""))
-  if(dim(pathwayView$steps)[1]==0)
+  cat(paste(" -- ",v$id,sep=""))
+  cat(paste(bold("\nCreated: "),blue(v$timestamp),sep=""))
+  cat(paste(" -- ",bold("last modified: "),blue(v$lastmodified),sep=""))
+  cat(paste(bold("\nOriginal Graph: "),green(v$original$name),sep=""))
+  if(dim(v$steps)[1]==0)
     cat("\nThis View has no steps.")
   else{
-    osteps=capture.output(print.data.frame(pathwayView$steps))
+    osteps=capture.output(print.data.frame(v$steps))
     osteps <- paste(osteps, "\n", sep="")
-    cat(blue("\nThe View has the following ",bold(dim(pathwayView$steps)[1])," step(s):\n"))
+    cat(blue("\nThe View has the following ",bold(dim(v$steps)[1])," step(s):\n"))
     cat(osteps)
   }
 }
 
-is.pathwayView<-function(pathwayView){
-  if(!"pathwayView"%in%class(pathwayView))
+is.pathwayView<-function(v){
+  if(!"pathwayView"%in%class(v))
     return(FALSE)
-  if(is.null(pathwayView$original)
-     || is.null(pathwayView$id) || is.na(pathwayView$id)
-     || is.null(pathwayView$steps))
+  if(is.null(v$original)
+     || is.null(v$id) || is.na(v$id)
+     || is.null(v$steps))
     return(FALSE)
   return(TRUE)
 }
 
 #' Track a modification of a graph
 #'
-#' @param pathwayView The input view in which the modification should be saved
+#' @param v The input view in which the modification should be saved
 #' @param action The type of action to be applied. Can either be "add" or "remove
 #' @param element The type of the element to be modified. Can either be "node", "edge", or "layer"
 #' @param name The name of the element to be modified. This argument is only mandatory for nodes and edges
@@ -80,8 +79,8 @@ is.pathwayView<-function(pathwayView){
 #' g=mully:::demo()
 #' view=pathwayView(g,"View1")
 #' view=addStep(view,"remove","layer","")
-addStep<-function(pathwayView,action,element,name=NA,layername=NA,V1=NA,V2=NA,attributes=NA,multi=F,trans=T){
-  if(missing(pathwayView) || !is.pathwayView(pathwayView) || missing(action) || missing(element)
+addStep<-function(v,action,element,name=NA,layername=NA,V1=NA,V2=NA,attributes=NA,multi=F,trans=T){
+  if(missing(v) || !is.pathwayView(v) || missing(action) || missing(element)
      || !action%in%c("add","remove") || !element%in%c("node","edge","layer") ){
     stop("This step cannot be applied. Please provide a correct view, action and element.")
   }
@@ -96,33 +95,33 @@ addStep<-function(pathwayView,action,element,name=NA,layername=NA,V1=NA,V2=NA,at
   }
   
   #tmp variables
-  g=pathwayView$modified
-  oldg=pathwayView$modified
-  stepID=pathwayView$lastStep+1
+  g=v$modified
+  oldg=v$modified
+  stepID=v$lastStep+1
   steps=data.frame("stepID"=is.integer(c()),"action"=is.character(c()),"element"=is.character(c()),"name"=is.character(c()),"V1"=is.character(c()),"V2"=is.character(c()),"attributesnames"=is.list(c()),"attributes"=is.list(c()),stringsAsFactors = F)[-1,]
   ########## Action Add ############
   #select case add
   if(action=="add"){
     #Call addLayer
     if(element=="layer"){
-      g=addLayer(g,name)
+      g=mully::addLayer(g,name)
       #Update steps in the view
       row=list("stepID"=stepID,"action"="add","element"="layer","name"=name,"V1"=NA,"V2"=NA,"attributes"=NA)
       steps=rbind(steps,row)
     }
     #Call addNode
     if(element=="node"){
-      g=addNode(g,name,layername,attributes)
+      g=mully::addNode(g,name,layername,attributes)
       #Update steps in the view
       att=as.list(getNodeAttributes(g,name))[-1]
-      row=list("stepID"=stepID,"action"="add","element"="node","name"=name,"V1"=NA,"V2"=NA,"attributesnames"=paste(names(att),collapse="$$"),"attributes"=paste(att,collapse="$$"))
+      row=list("stepID"=stepID,"action"="add","element"="node","name"=name,"V1"=NA,"V2"=NA,"attributesnames"=paste(names(att),collapse="---"),"attributes"=paste(att,collapse="---"))
       steps=rbind(steps,row)
     }
     #Call addEdge
     if(element=="edge"){
-      g=addEdge(g,V1,V2,attributes)
+      g=mully::addEdge(g,V1,V2,attributes)
       #Update steps in the view
-      row=list("stepID"=stepID,"action"="add","element"="edge","name"=NA,"V1"=V1,"V2"=V2,"attributesnames"=paste(names(attributes),collapse="$$"),"attributes"=paste(attributes,collapse="$$"))
+      row=list("stepID"=stepID,"action"="add","element"="edge","name"=NA,"V1"=V1,"V2"=V2,"attributesnames"=paste(names(attributes),collapse="---"),"attributes"=paste(attributes,collapse="---"))
       steps=rbind(steps,row)
     }
    
@@ -132,54 +131,54 @@ addStep<-function(pathwayView,action,element,name=NA,layername=NA,V1=NA,V2=NA,at
   if(action=="remove"){
     #Call removeLayer
     if(element=="layer"){
-      g=removeLayer(g,name,trans=trans)
+      g=mully::removeLayer(g,name,trans=trans)
       #Update steps in the view
-      nodes=getLayer(oldg,name)$name
+      nodes=mully::getLayer(oldg,name)$name
       ##Add removed edges
-      edgesOld=getEdgeAttributes(oldg)
+      edgesOld=mully::getEdgeAttributes(oldg)
       deletedEdges=rbind(edgesOld[which(edgesOld$V1 %in% nodes),],edgesOld[which(edgesOld$V2 %in% nodes),])
       rows=dim(deletedEdges)[1]
       i=1
       while(i<=rows){
         att=as.list(deletedEdges[i,])[-1][-1]
-        row=list("stepID"=stepID,"action"="remove","element"="edge","name"=NA,"V1"=deletedEdges$V1[i],"V2"=deletedEdges$V2[i],"attributesnames"=paste(names(deletedEdges[-1][-1]),collapse="$$"),attributes=paste(att,collapse="$$"))
+        row=list("stepID"=stepID,"action"="remove","element"="edge","name"=NA,"V1"=deletedEdges$V1[i],"V2"=deletedEdges$V2[i],"attributesnames"=paste(names(deletedEdges[-1][-1]),collapse="---"),attributes=paste(att,collapse="---"))
         steps=rbind(steps,row)
         i=i+1
       }
       
       ##Add removed nodes
       idLayer=oldg$layers$ID[which(oldg$layers$Name==name)]
-      nodes=getNodeAttributes(oldg)
+      nodes=mully::getNodeAttributes(oldg)
       nodes=nodes[which(nodes$n==idLayer),]
       rows=dim(nodes)[1]
       i=1
       while(i<=rows){
         l=as.list(nodes[i,])[-1]
-        row=list("stepID"=stepID,"action"="remove","element"="node","name"=nodes[i,1],"V1"=NA,"V2"=NA,"attributesnames"=paste(names(l),collapse="$$"),"attributes"=paste(l,collapse="$$"))
+        row=list("stepID"=stepID,"action"="remove","element"="node","name"=nodes[i,1],"V1"=NA,"V2"=NA,"attributesnames"=paste(names(l),collapse="---"),"attributes"=paste(l,collapse="---"))
         steps=rbind(steps,row)
         i=i+1
       }
       
       ##Add removed layer
-      row=list("stepID"=stepID,"action"="remove","element"="layer","name"=name,"V1"=NA,"V2"=NA,"attributesnames"=NA,"attributes"=NA)
+      row=list("stepID"=stepID,"action"="remove","element"="layer","name"=name,"V1"=NA,"V2"=NA,"attributesnames"=c("n"),"attributes"=c(idLayer))
       steps=rbind(steps,row)
     }
     
     #Call removeNode
     if(element=="node"){
-      g=removeNode(g,name,trans=trans)
+      g=mully::removeNode(g,name,trans=trans)
       #Add removed edges
-      oldedges=getEdgeAttributes(oldg,name)
+      oldedges=mully::getEdgeAttributes(oldg,name)
       rows=dim(oldedges)[1]
       i=1
       while(i<=rows){
         l=as.list(oldedges[i,])[-1][-1]
-        row=list("stepID"=stepID,"action"="remove","element"="edge","name"=NA,"V1"=oldedges$V1[i],"V2"=oldedges$V2[i],"attributesnames"=paste(names(l),collapse="$$"),"attributes"=paste(l,collapse="$$"))
+        row=list("stepID"=stepID,"action"="remove","element"="edge","name"=NA,"V1"=oldedges$V1[i],"V2"=oldedges$V2[i],"attributesnames"=paste(names(l),collapse="---"),"attributes"=paste(l,collapse="---"))
         steps=rbind(steps,row)
         i=i+1
       }
       #Add added transitive edges
-      edges=getEdgeAttributes(g)
+      edges=mully::getEdgeAttributes(g)
       if("via"%in%names(edges)){
         transedges=edges[which(edges$type=="trans"),]
         transedges=transedges[which(transedges$via==name),]
@@ -187,23 +186,23 @@ addStep<-function(pathwayView,action,element,name=NA,layername=NA,V1=NA,V2=NA,at
         i=1
         while(i<=rows){
           l=as.list(transedges[i,])[-1][-1]
-          row=list("stepID"=stepID,"action"="add","element"="edge","name"=NA,"V1"=transedges$V1[i],"V2"=transedges$V2[i],"attributesnames"=paste(names(l),collapse="$$"),"attributes"=paste(l,collapse="$$"))
+          row=list("stepID"=stepID,"action"="add","element"="edge","name"=NA,"V1"=transedges$V1[i],"V2"=transedges$V2[i],"attributesnames"=paste(names(l),collapse="---"),"attributes"=paste(l,collapse="---"))
           steps=rbind(steps,row)
           i=i+1
         }
       }
             #Update steps in the view
       l=as.list(getNodeAttributes(oldg,name))[-1]
-      row=list("stepID"=stepID,"action"="remove","element"="node","name"=name,"V1"=NA,"V2"=NA,"attributesnames"=paste(names(l),collapse="$$"),"attributes"=paste(l,collapse="$$"))
+      row=list("stepID"=stepID,"action"="remove","element"="node","name"=name,"V1"=NA,"V2"=NA,"attributesnames"=paste(names(l),collapse="---"),"attributes"=paste(l,collapse="---"))
       steps=rbind(steps,row)
     }
     
     #Call removeEdge
     if(element=="edge"){
-      g=removeEdge(oldg,nodeStart=V1,nodeDest=V2,attributes,multi)
+      g=mully::removeEdge(oldg,nodeStart=V1,nodeDest=V2,attributes,multi)
       #Find removed edges
-      edgesold=getEdgeAttributes(oldg,V1,V2)
-      edgesnew=getEdgeAttributes(g,V1,V2)
+      edgesold=mully::getEdgeAttributes(oldg,V1,V2)
+      edgesnew=mully::getEdgeAttributes(g,V1,V2)
       edges=anti_join(edgesold,edgesnew)
       
       rows=dim(edges)[1]
@@ -211,7 +210,7 @@ addStep<-function(pathwayView,action,element,name=NA,layername=NA,V1=NA,V2=NA,at
       while(i<=rows)
       {
         l=as.list(edges[i,])[-1][-1]
-        row=list("stepID"=stepID,"action"="remove","element"="edge","name"=NA,"V1"=V1,"V2"=V2,"attributesnames"=paste(names(l),collapse="$$"),"attributes"=paste(l,collapse="$$"))
+        row=list("stepID"=stepID,"action"="remove","element"="edge","name"=NA,"V1"=V1,"V2"=V2,"attributesnames"=paste(names(l),collapse="---"),"attributes"=paste(l,collapse="---"))
         steps=rbind(steps,row)
         i=i+1
       }
@@ -220,16 +219,100 @@ addStep<-function(pathwayView,action,element,name=NA,layername=NA,V1=NA,V2=NA,at
   }
   
   #Update the steps
-  pathwayView$steps=rbind(pathwayView$steps,steps)
-  pathwayView$lastStep=stepID
+  v$steps=rbind(v$steps,steps)
+  v$lastStep=stepID
   #Update the modified version in the view
-  pathwayView$modified=g
+  v$modified=g
   
   #Change last modification date
   op <- options(digits.secs = 6)
   timestamp=Sys.time()
   options(op)
-  pathwayView$lastmodified=timestamp
-  class(pathwayView)=c("pathwayView",class(pathwayView))
-  return(pathwayView)
+  v$lastmodified=timestamp
+  class(v)=unique(c("pathwayView",class(v)))
+  return(v)
+}
+
+#' Undo a modification step in a view
+#'
+#' @param v The input view
+#' @param stps The number of steps to undo. This number referes to the number of unique steps' IDs to be removed, i.e. entries of steps in the view with similar stepID count as 1
+#'
+#' @return The view with the undone modifications
+#' @export
+#'
+undo<-function(v,stps=1){
+  if(missing(v) || !is.pathwayView(v) || stps<0 || !is.double(stps) || stps%%1!=0)
+    stop("Invalid Argument")
+  if(v$lastStep==0){
+    stop("This View is empty")
+  }
+  if(stps==0){
+    print("No steps deleted")
+    return(v)
+  }
+  #tmp variables
+  g=v$modified
+  steps=v$steps
+  stepID=v$lastStep
+  countSteps=0
+  i=dim(steps)[1]
+  while (i>0){
+    stp=v$steps[i,]
+    if(stepID!=stp$stepID){
+      countSteps=countSteps+1
+      stepID=stp$stepID
+    }
+    if(countSteps==stps)
+      break
+    
+    attributes=NA
+    if(!is.na(stp$attributes)){
+      attributesNames=unlist(strsplit(stp$attributesnames,"---"))
+      attributes=unlist(strsplit(stp$attributes,"---"))
+      names(attributes)=attributesNames
+      attributes=as.list(attributes)
+    }
+    if(stp$action=="add"){
+      if(stp$element=="layer"){
+        g=mully::removeLayer(g,stp$name,trans = F)
+      }
+      if(stp$element=="node"){
+        g=mully::removeNode(g,stp$name,trans = F)
+      }
+      if(stp$element=="edge"){
+        g=mully::removeEdge(g,stp$V1,stp$V2,attributes)
+      }
+    }
+    if(stp$action=="remove"){
+      if(stp$element=="layer"){
+        g=mully::addLayer(g,stp$name)
+        g$layers$ID[dim(g$layers)[1]]=as.integer(attributes$n)
+        g$iLayer=g$iLayer-1
+      }
+      if(stp$element=="node"){
+        layerID=as.integer(attributes$'n')
+        layerName=g$layers$Name[which(g$layers$ID==layerID)]
+        g=mully::addNode(g,stp$name,layerName,attributes[-1])
+      }
+      if(stp$element=="edge"){
+        g=mully::addEdge(g,stp$V1,stp$V2,attributes)
+      }
+    }
+    
+    i=i-1
+  }
+  #Update view
+  
+  #All steps removed
+  if(i==0)
+    stepID=0
+  v$lastStep=stepID
+  v$steps=v$steps[-which(v$steps$stepID>stepID),]
+  op <- options(digits.secs = 6)
+  timestamp=Sys.time()
+  options(op)
+  v$lastmodified=timestamp
+  v$modified=g
+  return(v)
 }
