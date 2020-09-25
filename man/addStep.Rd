@@ -35,6 +35,8 @@ addStep(
 \item{attributes}{The named list of attributes of the element. This argument is required only for action "add". It is optional for both elements "node" and "edge", but mandatory if the edge alread exists}
 
 \item{multi}{A boolean whether to select multi-edges or not. This is only mandatory for action "remove" and element "edge". By default set to FALSE, in which case the attributes of the specified edge should be given}
+
+\item{trans}{A boolean whether to add transitive edges upon removal of nodes or layers}
 }
 \value{
 
