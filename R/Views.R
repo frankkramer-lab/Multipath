@@ -71,6 +71,7 @@ is.pathwayView<-function(v){
 #' @param V2 The end node of an edge. This argument is only mandatory for element "edge"
 #' @param attributes The named list of attributes of the element. This argument is required only for action "add". It is optional for both elements "node" and "edge", but mandatory if the edge alread exists 
 #' @param multi A boolean whether to select multi-edges or not. This is only mandatory for action "remove" and element "edge". By default set to FALSE, in which case the attributes of the specified edge should be given
+#' @param trans A boolean whether to add transitive edges upon removal of nodes or layers
 #'
 #' @return
 #' @export
@@ -136,7 +137,7 @@ addStep<-function(v,action,element,name=NA,layername=NA,V1=NA,V2=NA,attributes=N
       nodes=mully::getLayer(oldg,name)$name
       ##Add removed edges
       edgesOld=mully::getEdgeAttributes(oldg)
-      deletedEdges=rbind(edgesOld[which(edgesOld$V1 %in% nodes),],edgesOld[which(edgesOld$V2 %in% nodes),])
+      deletedEdges=unique(rbind(edgesOld[which(edgesOld$V1 %in% nodes),],edgesOld[which(edgesOld$V2 %in% nodes),]))
       rows=dim(deletedEdges)[1]
       i=1
       while(i<=rows){
@@ -204,7 +205,6 @@ addStep<-function(v,action,element,name=NA,layername=NA,V1=NA,V2=NA,attributes=N
       edgesold=mully::getEdgeAttributes(oldg,V1,V2)
       edgesnew=mully::getEdgeAttributes(g,V1,V2)
       edges=anti_join(edgesold,edgesnew)
-      
       rows=dim(edges)[1]
       i=1
       while(i<=rows)
@@ -289,6 +289,8 @@ undo<-function(v,stps=1){
         g=mully::addLayer(g,stp$name)
         g$layers$ID[dim(g$layers)[1]]=as.integer(attributes$n)
         g$iLayer=g$iLayer-1
+        g$layers=g$layers[order(g$layers$ID),]
+        rownames(g$layers)=c(1:dim(g$layers)[1])
       }
       if(stp$element=="node"){
         layerID=as.integer(attributes$'n')
