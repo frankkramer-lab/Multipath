@@ -40,7 +40,7 @@ install_github("frankkramer-lab/Multipath")
 library(Multipath)
 ```
 ## Test the package
-In this section, we provide a demo to test the package by calling some of the function. To run the script, you need to download the Signaling by Wnt from the Reactiome database in the BioPax format.
+In this section, we provide a demo to test the package by calling some of the function. To run the script, you need to download the [Signaling by Wnt from the Reactiome database](https://reactome.org/content/detail/R-HSA-195721) in the BioPax format.
 ### Create a mully graph from a BioPax-encoded pathway
 ```R
 wntBiopax=readBiopax("wntpathway_reactome.owl")
