@@ -1,6 +1,6 @@
 # Multipath
 Integrating pathways and related knowledge in a multilayer framework
-![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/R/img/multipath.png "multipath")
+![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/img/multipath.png "multipath")
 ## Introduction
 Biological pathway data integration has become a topic of interest in the past years. This interest originates essentially from the continuously increasing size of existing prior knowledge as well as from the many challenges scientists face when studying biological pathways. Multipath is a framework that aims at helping re-trace the use of specific pathway knowledge in specific publications, and easing the data integration of multiple pathway types and further influencing knowledge sources.
 Using Multipath, BioPax-encoded pathways can be parsed and embedded into multilayered graphs. Modifications can be applied to these graphs to generate different views.
@@ -47,7 +47,7 @@ pathwayID=listPathways(wntBiopax)$id[1]
 wntmully=pathway2Mully(wntBiopax,pathwayID)
 plot3d(wntmully,layers=T,vertex.label=NA,edge.width=5,edge.arrow.size=5)
 ```
-![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/R/img/wntpathway.png "Wnt pathway mully model")
+![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/img/wntpathway.png "Wnt pathway mully model")
 
 ### Generate Views
 ```R
@@ -55,19 +55,19 @@ view1=pathwayView(wntmully,"View1")
 view1=addStep(view1,action = "remove",element="layer",name="Rna",trans = T)
 suppressWarnings(plot3d(view1$modified))
 ```
-![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/R/img/view1rna.png "view1")
+![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/img/view1rna.png "view1")
 ```R
 view2=pathwayView(wntmully,"View2")
 view2=addStep(view2,action = "remove",element="layer",name="PhysicalEntity",trans=T)
 suppressWarnings(plot3d(view2$modified))
 ```
-![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/R/img/view2physentity.png "view2")
+![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/img/view2physentity.png "view2")
 ```R
 view3=pathwayView(wntmully,"View3")
 view3=addStep(view3,action = "remove",element="layer",name="Complex",trans=T)
 suppressWarnings(plot3d(view3$modified))
 ```
-![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/R/img/view3complex.png "view3")
+![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/img/view3complex.png "view3")
 
 ## Available Functions
 Multipath functions are divided into different files depending on their functionnality range:
