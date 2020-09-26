@@ -1,5 +1,6 @@
 # Multipath
-Integrating pathways and related knowledge in a multilayer framework
+Creating integrated reproducible pathway multilayer models
+
 ![alt text](https://github.com/frankkramer-lab/Multipath/blob/master/img/multipath.png "multipath")
 ## Introduction
 Biological pathway data integration has become a topic of interest in the past years. This interest originates essentially from the continuously increasing size of existing prior knowledge as well as from the many challenges scientists face when studying biological pathways. Multipath is a framework that aims at helping re-trace the use of specific pathway knowledge in specific publications, and easing the data integration of multiple pathway types and further influencing knowledge sources.
