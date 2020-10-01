@@ -17,4 +17,4 @@ getTCGAData<-function(idList){
 }
 
 
-allbreastalp20=unlist(strsplit(cancerdata[1,5]," "))
+# allbreastalp20=unlist(strsplit(cancerdata[1,5]," "))
