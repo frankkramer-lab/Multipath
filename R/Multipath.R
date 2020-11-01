@@ -1,3 +1,6 @@
+# data=loadDBXML("Data/DrugBankDBNew.xml")
+# up=UniProt.ws()
+
 #' Generate Multipath Graph from General Data
 #'
 #' @param name The name of the graph to be generated
@@ -13,17 +16,17 @@ multipath<-function(name="Multipath",up=NA,proteinList=NA,data=NA,drugList=NA){
   g=mully(name,direct=T)
   proteinLayer=F
   drugLayer=F
-  if(!is.na(proteinList) & !is.na(up)){
-    message("Multipath: Protein List will be added")
-    g=addUPKBLayer(g,up,proteinList)
-    proteinLayer=T
-  }
+
   if(!is.na(drugList) & !is.na(data)){
     message("Multipath: Drug Layer will be added")
     g=addDBLayer(g,data,drugList)
     drugLayer=T
   }
-  
+  if(!is.na(proteinList) & !is.na(up)){
+    message("Multipath: Protein List will be added")
+    g=addUPKBLayer(g,up,proteinList)
+    proteinLayer=T
+  }
   #Add Drug-Protein Relations
   if(drugLayer & proteinLayer){
     updbrelations=getUPKBDBRelations(up,data,proteinList,drugList)

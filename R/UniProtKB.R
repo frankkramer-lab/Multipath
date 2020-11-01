@@ -12,7 +12,7 @@
 #' up=UniProt.ws()
 #' allProteins=getAllUPKB(up)
 getAllUPKB <- function(up){
-  entriesList=keys(up,"UNIPROTKB")
+  entriesList=UniProt.ws::keys(up,"UNIPROTKB")
   return(getUPKBInfo(up,entriesList,c("PROTEIN-NAMES")))
 }
 
@@ -42,7 +42,7 @@ getUPKBInfo <- function(up,proteins,col){
     upID=proteins[i]
     #tryCatch to skip errors for non-UniProtKB IDs
     tryCatch({
-      row=select(up,columns=col,keys=upID,keytype="UNIPROTKB")
+      row=UniProt.ws::select(up,columns=col,keys=upID,keytype="UNIPROTKB")
       dfProt=rbind(dfProt,row)
     },error=function(e){
         skip=T
@@ -73,7 +73,10 @@ getUPKBInfo <- function(up,proteins,col){
 getUPKBInteractions<-function(up,proteins){
   allInteractions=getUPKBInfo(up,proteins,c("UNIPROTKB","INTERACTOR"))
   interactions=data.frame(V1=is.character(c()),V2=is.character(c()),stringsAsFactors = F)[-1,]
-  for(i in 1:dim(allInteractions)[1]){
+  rows=dim(allInteractions)[1]
+  if(rows==0)
+    return(interactions)
+  for(i in 1:rows){
     listInter=as.list(str_split(allInteractions[i,2],'; '))
     listInter=listInter[[1]]
     listInter=listInter[which(listInter%in%proteins)]
@@ -108,8 +111,9 @@ getUPKBInteractions<-function(up,proteins){
 #' g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
 addUPKBLayer<-function(g,up,proteinList,col=c("UNIPROTKB","PROTEIN-NAMES","ORGANISM")){
   upmully=addLayer(g,"UniProt")
-  columns=unique(append(c("UNIPROTKB"),col))
-  proteins=getUPKBInfo(up,proteinList,columns)
+  if(!"UNIPROTKB"%in%col)
+    col=append(c("UNIPROTKB"),col)
+  proteins=getUPKBInfo(up,proteinList,col)
   interactions=getUPKBInteractions(up,proteins$UNIPROTKB)
 
   #Add Proteins' Nodes
@@ -118,7 +122,7 @@ addUPKBLayer<-function(g,up,proteinList,col=c("UNIPROTKB","PROTEIN-NAMES","ORGAN
     progress(i,progress.bar = T)
     attrList=proteins[i,]
     attr=as.list(attrList)
-    names(attr)=columns
+    names(attr)=col
     upmully=mully::addNode(upmully,nodeName = proteins$'UNIPROTKB'[i],layerName = "UniProt",attributes = attr[-1])
   }
   message("Multipath: DONE - Protein Nodes Added")
