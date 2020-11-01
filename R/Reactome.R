@@ -22,6 +22,9 @@ pathway2Mully<-function(biopax,pathwayID){
   pathwaymully=mully(name=pathwayName,direct = T)  
 
   #Get Nodes
+  ##Empty Graph
+  if(length(nodeData(pathwaygraph)==0))
+    return(pathwaymully)
   listNodes=V(pathwayigraph)$name
   
   #Add Layers
@@ -62,4 +65,30 @@ getInstanceAttributes<-function(biopax,name){
     l$id=paste(l$id,str_trim(string[2],"both"),sep="")
   }
   return(l)
+}
+
+#' Get internal pathway ID in a BioPAX file
+#'
+#' @param biopax The biopax object
+#' @param reactomeID The Reactome ID of the pathway 
+#'
+#' @return The internal ID of the pathway in the parsed BioPAX object
+#' 
+#' @note 
+#' This should be preceded by readBiopax(filepath) to obtain the biopax object
+#' @examples
+#' biopax=readBiopax("pi3k.owl")
+#' id=getPathwayID(biopax,"R-HSA-167057")
+#' pi3kmully=pathway2mully(biopax,id)
+getPathwayID<-function(biopax,reactomeID){
+  listPathways=listPathways(biopax)
+  for(pathway in listPathways$id){
+    annots=getInstanceAttributes(biopax,pathway)
+    ids=unlist(str_split(annots$id,","))
+    dbs=unlist(str_split(annots$database,","))
+    id=ids[which(dbs=="Reactome")]
+    if(id==reactomeID)
+      return(pathway)
+  }
+  return(NULL)
 }
