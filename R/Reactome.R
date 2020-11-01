@@ -23,7 +23,7 @@ pathway2Mully<-function(biopax,pathwayID){
 
   #Get Nodes
   ##Empty Graph
-  if(length(nodeData(pathwaygraph)==0))
+  if(length(nodeData(pathwaygraph))==0)
     return(pathwaymully)
   listNodes=V(pathwayigraph)$name
   
