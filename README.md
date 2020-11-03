@@ -83,6 +83,7 @@ Multipath functions are divided into different files depending on their function
 
 | Function |Description|
 | --------------- |-----------|
+|`downloadPathway(pathwayID,biopaxLevel,destDirectory,overwrite)`|Download a BioPax encoded Reactome pathway function|
 |`pathway2Mully(biopax,pathwayID)`|Build a mully graph from a BioPax encoded pathway function|
 |`pathwayView(g,name)`|Constructor Function, Create an empty view|
 |`print(v)`|Print function|
