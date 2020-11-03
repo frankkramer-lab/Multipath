@@ -92,3 +92,56 @@ getPathwayID<-function(biopax,reactomeID){
   }
   return(NULL)
 }
+
+#' Download Reactome Pathways in BioPAX level 2 and 3
+#'
+#' @param pathwayID The Reactome ID or list of IDs of the pathways to be downloaded. The ID should start with R-HSA-.
+#' @param biopaxLevel The BioPAX Level, 2 or 3. By default set to 3.
+#' @param destDirectory The Directory in which the Pathway Files should be saved. If missing, the files are saved in the working directory. The Reactome IDs are used to name the files.
+#' @param overwrite A Boolean whether to overwrite existing files with the same name.
+#'
+#' @return The Directory in which the files are saved.
+#' @export
+#'
+#' @examples
+#' downloadPathway(c("R-HSA-195721","R-HSA-9609507"),biopaxLevel=3,overwrite=T)
+downloadPathway <-function(pathwayID,biopaxLevel = "3",destDirectory,overwrite = F) {
+    if (missing(pathwayID))
+      stop("Please provide a Reactome Pathway ID.")
+    if (!biopaxLevel %in% c("2", "3"))
+      stop("The given Biopax Level is wrong.")
+    if (missing(destDirectory)) {
+      message("The files will be saved in the Working directory.")
+      destDirectory = getwd()
+    }
+  
+    url = paste0("https://reactome.org/ReactomeRESTfulAPI/RESTfulWS/biopaxExporter/Level",biopaxLevel,"/",sep = "")
+    urlcheck="https://reactome.org/content/detail/"
+    for (pathway in pathwayID) {
+      destFile = paste0(destDirectory, "/", pathway, ".owl", sep = "")
+      if (file.exists(destFile)) {
+        if (overwrite == T)
+          message(paste0("The file ",pathway,".owl already exists and will be overwritten.",sep = ""))
+        else{
+          message(paste0("The file ",pathway,".owl already exists and will be skipped. If you wish to overwrite it, re-call the function with the argument overwrite set to TRUE.",sep = ""))
+          next
+        }
+          
+      }
+      
+      spl = unlist(str_split(pathway, "R-HSA-"))
+      if (length(spl) != 2){
+        message(paste0("The following given Reactome ID is wrong and will be skipped: ",pathway,sep=""))
+        next
+      }
+      urlchecktmp=paste0(urlcheck,pathway,sep="")
+      urltmp = paste0(url, spl[2], sep = "")
+      if (!url.exists(urlchecktmp)){
+        message(paste0("The following given Reactome ID is wrong and will be skipped: ",pathway,sep=""))
+        next
+      }
+      download.file(urltmp, destFile)
+    }
+    message(paste0("The pathways are download and saved in the following directory: ",destDirectory,sep = ""))
+    return(destDirectory)
+  }
