@@ -21,6 +21,8 @@ Get the interactions of given proteins from UniProt
 Should be preceded by UniProt.ws() to get the UniProt.ws Object
 }
 \examples{
+\dontrun{ 
 up=UniProt.ws()
 interactions=getUPKBInteractions(up,c("P02747","P07204","P00734"))
+}
 }

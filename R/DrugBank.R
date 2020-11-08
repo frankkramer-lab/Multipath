@@ -7,7 +7,7 @@
 #'
 #' @note
 #' This function should be called before using any function to query the DrugBank database. Since the parsing of DrugBank takes time, this function should only be called once.
-#'
+#' @importFrom dbparser read_drugbank_xml_db run_all_parsers
 loadDBXML<-function(file){
   read_drugbank_xml_db(file)
   data=run_all_parsers()
@@ -22,9 +22,11 @@ loadDBXML<-function(file){
 #' @return A dataframe containing the DrugBank entry with its information
 #' @export
 #'
-#' @examples 
+#' @examples
+#' \dontrun{ 
 #' data=loadDBXML(DrugBankFilePath)
 #' getDBDrug(data, "DB00001")
+#' }
 getDBDrug<-function(data,drug){
   drugs=as.data.frame(data[[1]])
   entry=drugs[which(drugs$'primary_key'%in%drug),]
@@ -47,7 +49,10 @@ getDBDrug<-function(data,drug){
 #' @export
 #'
 #' @examples 
+#' \dontrun{ 
+#' data=readDBXML(DBXMLFilePath)
 #' getDBDrugInteractions(data,"DB06605")
+#' }
 getDBDrugInteractions<-function(data,drug){
   if(!is.list(drug))
     drugs=c(drug)
@@ -78,7 +83,13 @@ getDBDrugInteractions<-function(data,drug){
 #' @export
 #'
 #' @examples
-#' addDBLayer(mully("DrugBank",direct=T),data,c("DB00001","DB06605"))
+#' \dontrun{ 
+#' data=readDBXML(DBXMLFilePath)
+#' g=mully("DrugBank",direct=T)
+#' g=addDBLayer(g,data,c("DB00001","DB06605"))
+#' }
+#' @import mully
+#' @importFrom igraph V
 addDBLayer<-function(g,data,drugList){
   dbmully=addLayer(g,"drugs")
   drugs=getDBDrug(data,drugList)
@@ -115,7 +126,6 @@ addDBLayer<-function(g,data,drugList){
 #'
 #' @return A dataframe containing all information on the tragets of the given drug list
 #' @export
-#'
 getDBTargets<-function(data,drugList){
   drugs=getDBDrug(data,drugList)$'primary_key'
   #Get Targets' list

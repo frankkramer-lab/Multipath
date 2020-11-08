@@ -18,5 +18,7 @@ An empty view
 Create an empty view
 }
 \examples{
+\dontrun{ 
 view=pathwayView(mully("myMully",T),"View1")
+}
 }

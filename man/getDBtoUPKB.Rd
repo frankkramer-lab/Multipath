@@ -20,5 +20,8 @@ A dataframe containing the connections between DrugBank drugs and UniProt protei
 Get DrugBank Drugs to UniProt Proteins Relations from DrugBank
 }
 \examples{
+\dontrun{ 
+data=readDBXML(DBXMLFilePath)
 getDBtoUPKB(data,c("DB00001","DB00002","DB00006"),c("P02747","P00734","P07204","P05164"))
+}
 }

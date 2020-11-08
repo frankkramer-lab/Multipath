@@ -7,7 +7,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{ 
 #' view=pathwayView(mully("myMully",T),"View1")
+#' }
+#' @importFrom uuid UUIDgenerate
 pathwayView<-function(g,name){
   id=UUIDgenerate(TRUE)
   op <- options(digits.secs = 6)
@@ -25,27 +28,29 @@ pathwayView<-function(g,name){
 
 #' Print function
 #'
-#' @param v The input View to be printed
+#' @param x The input View to be printed
+#' @param ... any other parameteres passed to \code{print}
 #'
 #' @export
-#' 
-print.pathwayView<-function(v){
-  if(missing(v))
+#' @importFrom utils capture.output
+#' @importFrom crayon blue bold green
+print.pathwayView<-function(x,...){
+  if(missing(x))
     stop("Invalid Argument")
   cat("View")
-  if(!is.na(v$name)){
-    cat(paste(" -- ",green(v$name),sep=""))
+  if(!is.na(x$name)){
+    cat(paste(" -- ",green(x$name),sep=""))
   }
-  cat(paste(" -- ",v$id,sep=""))
-  cat(paste(bold("\nCreated: "),blue(v$timestamp),sep=""))
-  cat(paste(" -- ",bold("last modified: "),blue(v$lastmodified),sep=""))
-  cat(paste(bold("\nOriginal Graph: "),green(v$original$name),sep=""))
-  if(dim(v$steps)[1]==0)
+  cat(paste(" -- ",x$id,sep=""))
+  cat(paste(bold("\nCreated: "),blue(x$timestamp),sep=""))
+  cat(paste(" -- ",bold("last modified: "),blue(x$lastmodified),sep=""))
+  cat(paste(bold("\nOriginal Graph: "),green(x$original$name),sep=""))
+  if(dim(x$steps)[1]==0)
     cat("\nThis View has no steps.")
   else{
-    osteps=capture.output(print.data.frame(v$steps))
+    osteps=capture.output(print.data.frame(x$steps))
     osteps <- paste(osteps, "\n", sep="")
-    cat(blue("\nThe View has the following ",bold(dim(v$steps)[1])," step(s):\n"))
+    cat(blue("\nThe View has the following ",bold(dim(x$steps)[1])," step(s):\n"))
     cat(osteps)
   }
 }
@@ -73,13 +78,17 @@ is.pathwayView<-function(v){
 #' @param multi A boolean whether to select multi-edges or not. This is only mandatory for action "remove" and element "edge". By default set to FALSE, in which case the attributes of the specified edge should be given
 #' @param trans A boolean whether to add transitive edges upon removal of nodes or layers
 #'
-#' @return
+#' @return The View with the added step
 #' @export
 #'
 #' @examples
+#' \dontrun{ 
 #' g=mully:::demo()
 #' view=pathwayView(g,"View1")
 #' view=addStep(view,"remove","layer","")
+#' }
+#' @import mully
+#' @importFrom dplyr anti_join
 addStep<-function(v,action,element,name=NA,layername=NA,V1=NA,V2=NA,attributes=NA,multi=F,trans=T){
   if(missing(v) || !is.pathwayView(v) || missing(action) || missing(element)
      || !action%in%c("add","remove") || !element%in%c("node","edge","layer") ){
@@ -240,7 +249,7 @@ addStep<-function(v,action,element,name=NA,layername=NA,V1=NA,V2=NA,attributes=N
 #'
 #' @return The view with the undone modifications
 #' @export
-#'
+#' @import mully
 undo<-function(v,stps=1){
   if(missing(v) || !is.pathwayView(v) || stps<0 || !is.double(stps) || stps%%1!=0)
     stop("Invalid Argument")

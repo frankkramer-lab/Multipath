@@ -23,6 +23,8 @@ Get UniProt Proteins to DrugBank Drugs relations from UniProt
 Should be preceded by UniProt.ws() to get the UniProt.ws Object
 }
 \examples{
+\dontrun{ 
 up=UniProt.ws()
 getUPKBtoDB(up,c("P02747","P00734","P07204"),c("DB00001","DB00002"))
+}
 }

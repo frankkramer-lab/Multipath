@@ -19,6 +19,8 @@ Get all proteins' entries from UniProt
 Should be preceded by UniProt.ws() to get the UniProt.ws Object
 }
 \examples{
+\dontrun{ 
 up=UniProt.ws()
 allProteins=getAllUPKB(up)
+}
 }

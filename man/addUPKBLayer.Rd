@@ -30,7 +30,9 @@ Add a protein layer to a mully graph
 Should be preceded by UniProt.ws() to get the UniProt.ws Object
 }
 \examples{
+\dontrun{ 
 up=UniProt.ws()
 g=mully("UniProt")
 g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
+}
 }

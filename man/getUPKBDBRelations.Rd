@@ -27,7 +27,9 @@ Should be preceded by:
 2. loadDBXML(DrugBankFile) to get the argument data
 }
 \examples{
-up=UniProt.ws()
-data=loadDBXML("DrugBankFile.xml")
-relations=getUPKBDBRelations(up,data,proteinList= c("P02747","P00734","P07204","P05164"),drugList=c("DB00001","DB00002","DB00006"))
+\dontrun{
+up=UniProt.ws() 
+data=readDBXML(DBXMLFilePath)
+relations=getUPKBDBRelations(up,data,c("P02747","P05164"),c("DB00001","DB00006"))
+}
 }

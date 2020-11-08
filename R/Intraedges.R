@@ -11,8 +11,10 @@
 #' @note
 #' Should be preceded by UniProt.ws() to get the UniProt.ws Object
 #' @examples
+#' \dontrun{ 
 #' up=UniProt.ws()
 #' getUPKBtoDB(up,c("P02747","P00734","P07204"),c("DB00001","DB00002"))
+#' }
 getUPKBtoDB<-function(up,proteinList,drugList){
   allRelations=getUPKBInfo(up,proteinList,col = c("UNIPROTKB","DRUGBANK"))
   relations=allRelations[which(allRelations$'DRUGBANK'%in%drugList),]
@@ -31,7 +33,10 @@ getUPKBtoDB<-function(up,proteinList,drugList){
 #' @export
 #'
 #' @examples
+#' \dontrun{ 
+#' data=readDBXML(DBXMLFilePath)
 #' getDBtoUPKB(data,c("DB00001","DB00002","DB00006"),c("P02747","P00734","P07204","P05164"))
+#' }
 getDBtoUPKB<-function(data,drugList,proteinList){
   l=list()
   
@@ -70,7 +75,7 @@ getDBtoUPKB<-function(data,drugList,proteinList){
   n=length(l)
   if(n==0){
     warning("No relations between the given nodes")
-    return(null)
+    return(NULL)
   }
   relations=l[[1]]
   if(n==1)
@@ -99,9 +104,11 @@ getDBtoUPKB<-function(data,drugList,proteinList){
 #' 1. UniProt.ws() to get the UniProt.ws Object
 #' 2. loadDBXML(DrugBankFile) to get the argument data
 #' @examples
-#' up=UniProt.ws()
-#' data=loadDBXML("DrugBankFile.xml")
-#' relations=getUPKBDBRelations(up,data,proteinList= c("P02747","P00734","P07204","P05164"),drugList=c("DB00001","DB00002","DB00006"))
+#' \dontrun{
+#' up=UniProt.ws() 
+#' data=readDBXML(DBXMLFilePath)
+#' relations=getUPKBDBRelations(up,data,c("P02747","P05164"),c("DB00001","DB00006"))
+#' }
 getUPKBDBRelations<-function(up,data,proteinList,drugList){
   upkbtodb=getUPKBtoDB(up,proteinList,drugList)
   dbtoupkb=getDBtoUPKB(data,drugList,proteinList)

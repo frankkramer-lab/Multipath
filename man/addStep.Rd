@@ -39,13 +39,15 @@ addStep(
 \item{trans}{A boolean whether to add transitive edges upon removal of nodes or layers}
 }
 \value{
-
+The View with the added step
 }
 \description{
 Track a modification of a graph
 }
 \examples{
+\dontrun{ 
 g=mully:::demo()
 view=pathwayView(g,"View1")
 view=addStep(view,"remove","layer","")
+}
 }

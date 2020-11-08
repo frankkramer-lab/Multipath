@@ -9,8 +9,10 @@
 #' @note
 #' Should be preceded by UniProt.ws() to get the UniProt.ws Object
 #' @examples
+#' \dontrun{ 
 #' up=UniProt.ws()
 #' allProteins=getAllUPKB(up)
+#' }
 getAllUPKB <- function(up){
   entriesList=UniProt.ws::keys(up,"UNIPROTKB")
   return(getUPKBInfo(up,entriesList,c("PROTEIN-NAMES")))
@@ -28,10 +30,13 @@ getAllUPKB <- function(up){
 #'
 #' @note
 #' Should be preceded by UniProt.ws() to get the UniProt.ws Object
-#' @examples
-#' up <- UniProt.ws()
-#' getUPKBInfo(up,c("Q6ZS62","P14384","P40259"),c("PROTEIN-NAMES","DRUGBANK","GO","REACTOME"))
 #' To get the list of possible columns, you can call columns(UniProt.ws())
+#' @examples
+#' \dontrun{ 
+#' up <- UniProt.ws()
+#' getUPKBInfo(up,c("Q6ZS62","P14384"),c("PROTEIN-NAMES","GO")) 
+#'} 
+#' @importFrom UniProt.ws select 
 getUPKBInfo <- function(up,proteins,col){
   dfProt=data.frame(as.list(c("UNIPROTKB",col)),stringsAsFactors = FALSE)
   dfProt=dfProt[-1,]
@@ -68,8 +73,11 @@ getUPKBInfo <- function(up,proteins,col){
 #' @note
 #' Should be preceded by UniProt.ws() to get the UniProt.ws Object
 #' @examples
+#' \dontrun{ 
 #' up=UniProt.ws()
 #' interactions=getUPKBInteractions(up,c("P02747","P07204","P00734"))
+#' }
+#' @importFrom stringr str_split
 getUPKBInteractions<-function(up,proteins){
   allInteractions=getUPKBInfo(up,proteins,c("UNIPROTKB","INTERACTOR"))
   interactions=data.frame(V1=is.character(c()),V2=is.character(c()),stringsAsFactors = F)[-1,]
@@ -106,9 +114,13 @@ getUPKBInteractions<-function(up,proteins){
 #' @note
 #' Should be preceded by UniProt.ws() to get the UniProt.ws Object
 #' @examples
+#' \dontrun{ 
 #' up=UniProt.ws()
 #' g=mully("UniProt")
 #' g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
+#' }
+#' @import mully
+#' @importFrom svMisc progress
 addUPKBLayer<-function(g,up,proteinList,col=c("UNIPROTKB","PROTEIN-NAMES","ORGANISM")){
   upmully=addLayer(g,"UniProt")
   if(!"UNIPROTKB"%in%col)

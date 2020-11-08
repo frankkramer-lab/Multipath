@@ -18,5 +18,8 @@ A dataframe containing the DrugBank interactions in which the given drug is invo
 Get DrugBank Drug to Drug Interactions
 }
 \examples{
+\dontrun{ 
+data=readDBXML(DBXMLFilePath)
 getDBDrugInteractions(data,"DB06605")
+}
 }

@@ -1,6 +1,3 @@
-# data=loadDBXML("Data/DrugBankDBNew.xml")
-# up=UniProt.ws()
-
 #' Generate Multipath Graph from General Data
 #'
 #' @param name The name of the graph to be generated
@@ -11,7 +8,8 @@
 #'
 #' @return A mully graph with the added data
 #' @export
-#'
+#' @import mully
+#' @importFrom igraph V
 multipath<-function(name="Multipath",up=NA,proteinList=NA,data=NA,drugList=NA){
   g=mully(name,direct=T)
   proteinLayer=F

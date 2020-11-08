@@ -9,8 +9,15 @@
 #' @note 
 #' This should be preceded by readBiopax(filepath) to obtain the biopax object
 #' @examples
-#' biopax=readBiopax("pi3k.owl")
+#' \dontrun{ 
+#' biopax=readBiopax(pi3k.owl)
 #' pi3kmully=pathway2mully(biopax,"pathway1")
+#' }
+#' @import mully
+#' @import rBiopaxParser
+#' @import igraph
+#' @importFrom stringr str_split str_trim
+#' @importFrom graph nodeData
 pathway2Mully<-function(biopax,pathwayID){
   #Transform created Pathway GraphNEL to igraph object
   pathwaygraph=pathway2Graph(biopax,pathwayID)
@@ -77,9 +84,13 @@ getInstanceAttributes<-function(biopax,name){
 #' @note 
 #' This should be preceded by readBiopax(filepath) to obtain the biopax object
 #' @examples
-#' biopax=readBiopax("pi3k.owl")
+#' \dontrun{ 
+#' biopax=readBiopax(pi3k.owl)
 #' id=getPathwayID(biopax,"R-HSA-167057")
 #' pi3kmully=pathway2mully(biopax,id)
+#' }
+#' @importFrom rBiopaxParser listPathways
+#' @importFrom stringr str_split
 getPathwayID<-function(biopax,reactomeID){
   listPathways=listPathways(biopax)
   for(pathway in listPathways$id){
@@ -104,7 +115,12 @@ getPathwayID<-function(biopax,reactomeID){
 #' @export
 #'
 #' @examples
+#' \dontrun{ 
 #' downloadPathway(c("R-HSA-195721","R-HSA-9609507"),biopaxLevel=3,overwrite=T)
+#' }
+#' @importFrom utils download.file
+#' @importFrom RCurl url.exists
+#' @importFrom stringr str_split
 downloadPathway <-function(pathwayID,biopaxLevel = "3",destDirectory,overwrite = F) {
     if (missing(pathwayID))
       stop("Please provide a Reactome Pathway ID.")

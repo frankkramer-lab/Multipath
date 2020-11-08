@@ -21,6 +21,8 @@ Build a mully graph from a given pathway
 This should be preceded by readBiopax(filepath) to obtain the biopax object
 }
 \examples{
-biopax=readBiopax("pi3k.owl")
+\dontrun{ 
+biopax=readBiopax(pi3k.owl)
 pi3kmully=pathway2mully(biopax,"pathway1")
+}
 }

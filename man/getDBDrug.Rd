@@ -18,6 +18,8 @@ A dataframe containing the DrugBank entry with its information
 Get DrugBank drug entry
 }
 \examples{
+\dontrun{ 
 data=loadDBXML(DrugBankFilePath)
 getDBDrug(data, "DB00001")
+}
 }

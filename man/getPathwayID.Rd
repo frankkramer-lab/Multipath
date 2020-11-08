@@ -21,7 +21,9 @@ Get internal pathway ID in a BioPAX file
 This should be preceded by readBiopax(filepath) to obtain the biopax object
 }
 \examples{
-biopax=readBiopax("pi3k.owl")
+\dontrun{ 
+biopax=readBiopax(pi3k.owl)
 id=getPathwayID(biopax,"R-HSA-167057")
 pi3kmully=pathway2mully(biopax,id)
+}
 }

@@ -3,7 +3,8 @@
 #' @param file The link to the Wnt Pathway biopax file 
 #'
 #' @export
-#'
+#' @importFrom rBiopaxParser readBiopax listPathways
+#' @importFrom mully plot3d
 wntpathway<-function(file){
   wntBiopax=readBiopax(file)
   pathwayID=listPathways(wntBiopax)$id[1]

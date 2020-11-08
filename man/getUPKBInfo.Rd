@@ -21,9 +21,11 @@ Get Proteins from UniProtKB
 }
 \note{
 Should be preceded by UniProt.ws() to get the UniProt.ws Object
+To get the list of possible columns, you can call columns(UniProt.ws())
 }
 \examples{
+\dontrun{ 
 up <- UniProt.ws()
-getUPKBInfo(up,c("Q6ZS62","P14384","P40259"),c("PROTEIN-NAMES","DRUGBANK","GO","REACTOME"))
-To get the list of possible columns, you can call columns(UniProt.ws())
+getUPKBInfo(up,c("Q6ZS62","P14384"),c("PROTEIN-NAMES","GO")) 
+} 
 }

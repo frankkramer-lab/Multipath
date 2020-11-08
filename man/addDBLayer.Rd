@@ -20,5 +20,9 @@ A mully graph with the added drug layer
 Add a drug layer to a mully graph
 }
 \examples{
-addDBLayer(mully("DrugBank",direct=T),data,c("DB00001","DB06605"))
+\dontrun{ 
+data=readDBXML(DBXMLFilePath)
+g=mully("DrugBank",direct=T)
+g=addDBLayer(g,data,c("DB00001","DB06605"))
+}
 }
