@@ -12,7 +12,7 @@ getDBTargets(data, drugList)
 \item{drugList}{The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)}
 }
 \value{
-A dataframe containing all information on the tragets of the given drug list
+A dataframe containing all information on the targets of the given drug list
 }
 \description{
 Get the targets of given DrugBank drugs

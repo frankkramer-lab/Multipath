@@ -74,13 +74,39 @@ getInstanceAttributes<-function(biopax,name){
   return(l)
 }
 
+#' Get External Database IDs of nodes
+#'
+#' @param biopax The biopax object
+#' @param nodes The list of internal IDs of the nodes
+#' @param database The name of the database
+#'
+#' @return A dataframe with the mappings between the internal and external IDs
+#' @export
+#'
+#' @examples
+#' \dontrun{ 
+#' biopax=readBiopax(pi3k.owl)
+#' getExternalIDs(wntBiopax,c("Protein1","Protein2"),"UniProt")
+#' }
+getExternalIDs<-function(biopax,nodes,database){
+  idsRes=data.frame("id"=is.character(c()),"extid"=is.character(c()),stringsAsFactors = F)[-1,]
+  for(j in 1:length(nodes)){
+    atts=getInstanceAttributes(biopax,nodes[j])
+    ids=unlist(str_split(atts$id,","))
+    dbs=unlist(str_split(atts$database,","))
+    ids=ids[which(dbs==database)]
+    idsRes=rbind(idsRes,cbind(rep(nodes[j],length(ids)),ids))
+  }
+  names(idsRes)=c("id",paste0(database," id"))
+  return(idsRes)
+}
+
 #' Get internal pathway ID in a BioPAX file
 #'
 #' @param biopax The biopax object
 #' @param reactomeID The Reactome ID of the pathway 
 #'
 #' @return The internal ID of the pathway in the parsed BioPAX object
-#' 
 #' @note 
 #' This should be preceded by readBiopax(filepath) to obtain the biopax object
 #' @examples
@@ -91,6 +117,7 @@ getInstanceAttributes<-function(biopax,name){
 #' }
 #' @importFrom rBiopaxParser listPathways
 #' @importFrom stringr str_split
+#' @export
 getPathwayID<-function(biopax,reactomeID){
   listPathways=listPathways(biopax)
   for(pathway in listPathways$id){

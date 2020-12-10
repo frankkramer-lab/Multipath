@@ -19,7 +19,7 @@ Get DrugBank Drug to Drug Interactions
 }
 \examples{
 \dontrun{ 
-data=readDBXML(DBXMLFilePath)
+data=loadDBXML(DBXMLFilePath)
 getDBDrugInteractions(data,"DB06605")
 }
 }

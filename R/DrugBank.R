@@ -50,7 +50,7 @@ getDBDrug<-function(data,drug){
 #'
 #' @examples 
 #' \dontrun{ 
-#' data=readDBXML(DBXMLFilePath)
+#' data=loadDBXML(DBXMLFilePath)
 #' getDBDrugInteractions(data,"DB06605")
 #' }
 getDBDrugInteractions<-function(data,drug){
@@ -124,7 +124,7 @@ addDBLayer<-function(g,data,drugList){
 #' @param data  The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
 #' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
 #'
-#' @return A dataframe containing all information on the tragets of the given drug list
+#' @return A dataframe containing all information on the targets of the given drug list
 #' @export
 getDBTargets<-function(data,drugList){
   drugs=getDBDrug(data,drugList)$'primary_key'
