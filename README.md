@@ -6,6 +6,11 @@ Creating integrated reproducible pathway multilayer models
 Biological pathway data integration has become a topic of interest in the past years. This interest originates essentially from the continuously increasing size of existing prior knowledge as well as from the many challenges scientists face when studying biological pathways. Multipath is a framework that aims at helping re-trace the use of specific pathway knowledge in specific publications, and easing the data integration of multiple pathway types and further influencing knowledge sources.
 Using Multipath, BioPax-encoded pathways can be parsed and embedded into multilayered graphs. Modifications can be applied to these graphs to generate different views.
 The package is implemented as a part of [the Multipath Project](https://www.sys-med.de/en/junior-research-groups/multipath/)  directed by [Dr. Frank Kramer](https://www.uni-augsburg.de/de/fakultaet/fai/informatik/prof/misit/mitarbeiter/) .
+## Publication
+More information and references can be found in the mully paper:
+
+https://www.mdpi.com/2079-7737/9/12/483
+
 ## Installation
 ### Preinstallation
 Multipath depends on multiple packages. The packages are the following:
