@@ -7,7 +7,7 @@ Biological pathway data integration has become a topic of interest in the past y
 Using Multipath, BioPax-encoded pathways can be parsed and embedded into multilayered graphs. Modifications can be applied to these graphs to generate different views.
 The package is implemented as a part of [the Multipath Project](https://www.sys-med.de/en/junior-research-groups/multipath/)  directed by [Dr. Frank Kramer](https://www.uni-augsburg.de/de/fakultaet/fai/informatik/prof/misit/mitarbeiter/) .
 ## Publication
-More information and references can be found in the mully paper:
+More information and references can be found in the Multipath paper:
 
 https://www.mdpi.com/2079-7737/9/12/483
 
