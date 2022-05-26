@@ -94,15 +94,38 @@ getExternalIDs<-function(biopax,nodes,database=NULL){
     atts=getInstanceAttributes(biopax,nodes[j])
     ids=unlist(str_split(atts$id,","))
     dbs=unlist(str_split(atts$database,","))
-    if(!missing(database) || !is.null(database)){
+    if(!missing(database) && !is.null(database)){
       ids=ids[which(dbs==database)]
     }
-    else
-      database="XREF"
     l=list(rep(nodes[j],length(ids)),ids,dbs)
     names(l)=c("id","extid","database")
     idsRes=rbind(idsRes,l)
   }
+  return(idsRes)
+}
+
+
+#' Get Internal ID of a given node or list of nodes
+#'
+#' @param biopax The biopax object
+#' @param nodes The list of external IDs of the nodes. If missing, the list of all internal IDs will be returned.
+#' @param g The graph generated from the given biopax object.
+#'
+#' @return A dataframe with the mappings between the external and internal  IDs
+#' @export
+#'
+#' @examples
+#' \dontrun{ 
+#' biopax=readBiopax(pi3k.owl)
+#' g=pathway2Mully(biopax,"pathway1")
+#' getInternalID(wntBiopax,c("R-HSA-5368514","Q9BQB4"))
+#' }
+getInternalID<-function(g,biopax,nodes=NULL){
+  idsRes=data.frame("id"=is.character(c()),"intid"=is.character(c()),stringsAsFactors = F)[-1,]
+  ids=getExternalIDs(biopax,V(g)$name)
+  idsRes=ids[,c(2,1)]
+  if(!missing(nodes) && !is.null(nodes))
+    return(idsRes[which(idsRes$extid %in% nodes),])
   return(idsRes)
 }
 

@@ -1,7 +1,7 @@
 Package: Multipath
 Type: Package
 Title: Pathway Data Integration With Influencing Knowledge Using Multi-Layered Graphs
-Version: 1.0.3
+Version: 1.0.4
 Author: Zaynab Hammoud
 Maintainer: Zaynab Hammoud <zaynabhassanhammoud@gmail.com>
 Description: Allows the integration of pathway data with influencing knowledge from different databases, like DrugBank, Reactome and UniProt, by using multilayered graphs.
