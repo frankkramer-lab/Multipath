@@ -78,7 +78,7 @@ getInstanceAttributes<-function(biopax,name){
 #'
 #' @param biopax The biopax object
 #' @param nodes The list of internal IDs of the nodes
-#' @param database The name of the database
+#' @param database The name of the database. If missing, the list of all external ids of all databases will be returned.
 #'
 #' @return A dataframe with the mappings between the internal and external IDs
 #' @export
@@ -88,16 +88,22 @@ getInstanceAttributes<-function(biopax,name){
 #' biopax=readBiopax(pi3k.owl)
 #' getExternalIDs(wntBiopax,c("Protein1","Protein2"),"UniProt")
 #' }
-getExternalIDs<-function(biopax,nodes,database){
-  idsRes=data.frame("id"=is.character(c()),"extid"=is.character(c()),stringsAsFactors = F)[-1,]
+getExternalIDs<-function(biopax,nodes,database=NULL){
+  idsRes=data.frame("id"=is.character(c()),"extid"=is.character(c()),"database"=is.character(c()),stringsAsFactors = F)[-1,]
   for(j in 1:length(nodes)){
     atts=getInstanceAttributes(biopax,nodes[j])
     ids=unlist(str_split(atts$id,","))
     dbs=unlist(str_split(atts$database,","))
-    ids=ids[which(dbs==database)]
-    idsRes=rbind(idsRes,cbind(rep(nodes[j],length(ids)),ids))
+    if(!missing(database) || !is.null(database)){
+      ids=ids[which(dbs==database)]
+    }
+    else
+      database="XREF"
+    l=list(rep(nodes[j],length(ids)),ids,dbs)
+    names(l)=c("id","extid","database")
+    idsRes=rbind(idsRes,l)
   }
-  names(idsRes)=c("id",paste0(database," id"))
+  #names(idsRes)=c("id",paste0(database," id"),"Database")
   return(idsRes)
 }
 
