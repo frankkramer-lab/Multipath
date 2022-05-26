@@ -1,13 +1,13 @@
 #' Demo function for Wnt Pathway Views
 #'
-#' @param file The link to the Wnt Pathway biopax file 
 #'
 #' @export
 #' @importFrom rBiopaxParser readBiopax listPathways
 #' @importFrom mully plot3d
-wntpathway<-function(file){
-  wntBiopax=readBiopax(file)
-  pathwayID=listPathways(wntBiopax)$id[1]
+wntpathway<-function(){
+  downloadPathway("R-HSA-195721")
+  wntBiopax=readBiopax("R-HSA-195721.owl")
+  pathwayID=getPathwayID(wntBiopax,"R-HSA-195721")
   wntmully=pathway2Mully(wntBiopax,pathwayID)
   plot3d(wntmully,layers=T,vertex.label=NA,edge.width=5,edge.arrow.size=5)
   #First Plot
@@ -28,4 +28,40 @@ wntpathway<-function(file){
   suppressWarnings(plot3d(view3$modified))
   
   view4=undo(view3,1)
+
+  #Add DrugBank Layer
+  #Get Proteins on Protein Layer
+  proteinLayer=getLayer(wntmully,"Protein")
+  proteinMappings=getExternalIDs(wntBiopax,proteinLayer$name,"UniProt")
+  proteinIDs=unique(proteinMappings[,2])
+  up=UniProt.ws()
+  upkbtodb=getUPKBInfo(up,proteinIDs,col=c("UNIPROTKB","DRUGBANK"))
+  drugIDs=unique(upkbtodb$dbid)
+  wntmully=addDBLayer(wntmully,dataNew,drugIDs)
+  wntmully=removeLayer(wntmully,"drugs",trans = F)
+  newWnt=addDBLayer(mully(name="Wnt Pathway",direct = T),dataNew,drugList = drugIDs)
+  newWnt=merge(newWnt,wntmully)
+  
+  #Merge edges
+  upkbtodb=read.csv("mappingsWnt.csv")
+  dbtoupkb=getDBtoUPKB(dataNew,drugIDs,proteinIDs)
+  lnames=intersect(names(upkbtodb),names(dbtoupkb))
+  upkbtodb$source="UniProt"
+  dbtoupkb$source="DrugBank"
+  relations=merge.data.frame(upkbtodb,dbtoupkb[ ,c("dbid","upid","type","dbproteinid","source")],by=lnames,all=T)
+  relations$source=paste(relations$'source.x'," ",relations$'source.y')
+  relations=relations[,c("dbid","upid","type","dbproteinid","source")]
+  relations=unique(relations[order(relations$dbid),])
+  names(proteinMappings)=c("intid","upid")
+  #Replace internal IDs
+  newRelations=merge.data.frame(proteinMappings,newRelations)
+  for (i in 1:dim(relations)[1]) {
+    startName=V(newWnt)[which(V(newWnt)$name == newRelations$'dbid'[i])]$name
+    endName=V(newWnt)[which(V(newWnt)$name == newRelations$'intid'[i])]$name
+    attrList=newRelations[i,]
+    attr=as.list(attrList)
+    names(attr)=names(newRelations)
+    newWnt=mully::addEdge(newWnt,startName,endName,attributes = attr[-2])
+  }
+  return(wntmully)
 }
