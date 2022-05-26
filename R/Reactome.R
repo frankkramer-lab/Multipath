@@ -103,7 +103,6 @@ getExternalIDs<-function(biopax,nodes,database=NULL){
     names(l)=c("id","extid","database")
     idsRes=rbind(idsRes,l)
   }
-  #names(idsRes)=c("id",paste0(database," id"),"Database")
   return(idsRes)
 }
 
