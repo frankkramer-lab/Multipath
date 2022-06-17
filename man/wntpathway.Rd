@@ -4,10 +4,7 @@
 \alias{wntpathway}
 \title{Demo function for Wnt Pathway Views}
 \usage{
-wntpathway(file)
-}
-\arguments{
-\item{file}{The link to the Wnt Pathway biopax file}
+wntpathway()
 }
 \description{
 Demo function for Wnt Pathway Views
