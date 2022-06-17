@@ -120,10 +120,16 @@ getExternalIDs<-function(biopax,nodes,database=NULL){
 #' g=pathway2Mully(biopax,"pathway1")
 #' getInternalID(wntBiopax,c("R-HSA-5368514","Q9BQB4"))
 #' }
-getInternalID<-function(g,biopax,nodes=NULL){
-  idsRes=data.frame("id"=is.character(c()),"intid"=is.character(c()),stringsAsFactors = F)[-1,]
-  ids=getExternalIDs(biopax,V(g)$name)
-  idsRes=ids[,c(2,1)]
+getInternalIDs<-function(g,nodes=NULL){
+  idsRes=data.frame("id"=is.character(c()),"intid"=is.character(c()),"database"=is.character(c()),stringsAsFactors = F)[-1,]
+  allNodes=getNodeAttributes(g)
+  for(j in 1:length(allNodes)){
+    ids=unlist(str_split(allNodes$id[j],","))
+    dbs=unlist(str_split(allNodes$database[j],","))
+    l=list(rep(allNodes$name[j],length(ids)),ids,dbs)
+    names(l)=c("id","extid","database")
+    idsRes=rbind(idsRes,l)
+  }
   if(!missing(nodes) && !is.null(nodes))
     return(idsRes[which(idsRes$extid %in% nodes),])
   return(idsRes)
