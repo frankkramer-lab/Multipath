@@ -118,12 +118,12 @@ getExternalIDs<-function(biopax,nodes,database=NULL){
 #' \dontrun{ 
 #' biopax=readBiopax(pi3k.owl)
 #' g=pathway2Mully(biopax,"pathway1")
-#' getInternalID(wntBiopax,c("R-HSA-5368514","Q9BQB4"))
+#' getInternalIDs(wntBiopax,c("R-HSA-5368514","Q9BQB4"))
 #' }
 getInternalIDs<-function(g,nodes=NULL){
   idsRes=data.frame("id"=is.character(c()),"intid"=is.character(c()),"database"=is.character(c()),stringsAsFactors = F)[-1,]
   allNodes=getNodeAttributes(g)
-  for(j in 1:length(allNodes)){
+  for(j in 1:length(allNodes$name)){
     ids=unlist(str_split(allNodes$id[j],","))
     dbs=unlist(str_split(allNodes$database[j],","))
     l=list(rep(allNodes$name[j],length(ids)),ids,dbs)

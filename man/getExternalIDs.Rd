@@ -4,14 +4,14 @@
 \alias{getExternalIDs}
 \title{Get External Database IDs of nodes}
 \usage{
-getExternalIDs(biopax, nodes, database)
+getExternalIDs(biopax, nodes, database = NULL)
 }
 \arguments{
 \item{biopax}{The biopax object}
 
 \item{nodes}{The list of internal IDs of the nodes}
 
-\item{database}{The name of the database}
+\item{database}{The name of the database. If missing, the list of all external ids of all databases will be returned.}
 }
 \value{
 A dataframe with the mappings between the internal and external IDs
