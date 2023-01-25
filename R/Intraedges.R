@@ -16,11 +16,23 @@
 #' getUPKBtoDB(up,c("P02747","P00734","P07204"),c("DB00001","DB00002"))
 #' }
 getUPKBtoDB<-function(up,proteinList,drugList){
-  allRelations=getUPKBInfo(up,proteinList,col = c("UNIPROTKB","DRUGBANK"))
+  allRelations=getUPKBInfo(up,proteinList,col = c("xref_drugbank"))
   names(allRelations)=c("upid","dbid")
   allRelations=allRelations[order(allRelations$upid),]
   if(missing(drugList)){
     return(allRelations)
+  }
+  rows=dim(allRelations)[1]
+  if(rows==0)
+    return(allRelations)
+  for(i in 1:rows){
+    listInter=as.list(str_split(allRelations[i,2],"DB"))[[1]]
+    for(j in 1:length(listInter)){
+      if("" == listInter[j])
+        next()
+      entry=c(allRelations[i,1],paste0("DB",listInter[j]))
+      allRelations[dim(allRelations)[1]+1,]=entry
+    }
   }
   relations=allRelations[which(allRelations$'dbid'%in%drugList),]
   return(relations)

@@ -26,6 +26,6 @@ To get the list of possible columns, you can call columns(UniProt.ws())
 \examples{
 \dontrun{ 
 up <- UniProt.ws()
-getUPKBInfo(up,c("Q6ZS62","P14384"),c("PROTEIN-NAMES","GO")) 
+getUPKBInfo(up,c("Q6ZS62","P14384"),c("protein_name","go")) 
 } 
 }
