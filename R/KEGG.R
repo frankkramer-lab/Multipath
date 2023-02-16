@@ -1,15 +1,15 @@
 # Get A Gene using KeggGet
-#' Get Kegg gene 
+#' Get Kegg gene
 #'
-#' @param geneList  List of Genes as formatted in KEGG Genes 
+#' @param geneList  List of Genes as formatted in KEGG Genes
 #'
-#' @return A data frame of kegg data 
+#' @return A data frame of kegg data
 #' @export
 #'
 #' @examples
 #' geneList=c("hsa:122706","hsa:4221","hsa:8312")
 #' genes=  getKeggGene(geneList)
-#' 
+#'
 getKeggGene <- function(geneList) {
   if (missing(geneList) || is.null(geneList)) {
     stop("Invalid Arguments")
@@ -44,13 +44,13 @@ getKeggGene <- function(geneList) {
   return(df_keggGetInput)
 }
 
-#' Transform data retrieved from KEGG 
+#' Transform data retrieved from KEGG
 #'
 #' @param list_keggGet list of gene input
-#' @param list_Get  list of gene data retrieved from Kegg genes database 
+#' @param list_Get  list of gene data retrieved from Kegg genes database
 #'
 #'@note must be precedeed by getkegggenes(geneInput)
-#' @return a dataframe of Kegg data 
+#' @return a dataframe of Kegg data
 #' @export
 #'
 #' @examples
@@ -87,11 +87,11 @@ transformKeggData <- function(list_keggGet, list_Get) {
 }
 
 #Get interactions between a kegg gene input and all the databases - returns NA when there is no cross reference to other databases
-#' Interaction between KEGG genes and other databases 
+#' Interaction between KEGG genes and other databases
 #'
-#' @param keggInput data frame of all data retrieved from kegg genes database 
+#' @param keggInput data frame of all data retrieved from kegg genes database
 #'
-#' @return A data frame of each gene vs interactions with other databases 
+#' @return A data frame of each gene vs interactions with other databases
 #' @export
 #'
 #' @examples
@@ -133,10 +133,10 @@ interactionKegg <- function(keggInput) {
 #simplifies the interaction between a gene input and other databases and shows results in 4 columns (c1 = entry number in KEGG c2= name in other databse c3= other database's name c4= organism name as attribtute  )
 #' Simplify the dataframe's structure
 #'
-#' @param genes A data frame of all genes and their relation to other cross references 
+#' @param genes A data frame of all genes and their relation to other cross references
 #'
 #' @note  must be preceeded by interactionKegg(keggInput)
-#' @return A data frame of gene and its presence in other databases 
+#' @return A data frame of gene and its presence in other databases
 #' @export
 #'
 #' @examples
@@ -153,8 +153,8 @@ simplifyInteractionKegg <- function(genes) {
     source = is.character(c()),
     stringsAsFactors = FALSE
   )[-1,]
-  if ("NCBI-GeneID" %in% colnames(genes))
-    genes = genes[,-which(colnames(genes) %in% c("NCBI-GeneID"))]
+  #  if ("NCBI-GeneID" %in% colnames(genes))
+  #    genes = genes[, -which(colnames(genes) %in% c("NCBI-GeneID"))]
   entry = genes[1]
   attributes = genes[2]
   dblinks = genes[3:ncol(genes)]
@@ -167,7 +167,6 @@ simplifyInteractionKegg <- function(genes) {
           dbId =  idlink[l]
           dbName = colnames(dblinks[j])
           attributes = genes$organism[i]
-          
           df_simplifyInteractiontemp = data.frame(
             keggEntry = keggEntry,
             dbId = dbId,
@@ -191,95 +190,104 @@ simplifyInteractionKegg <- function(genes) {
 
 #' Add KEGG Gene Layer with its respective Nodes
 #'
-#' @param g  An existing Mully graph 
-#' @param geneList A list of KEGG genes to add
+#' @param g  An existing Mully graph
+#' @param biopax A biopax file
 #'
 #' @return A Mully graph with the all layers,nodes and edges
 #' @export
 #'
 #' @examples
 #' g= mully("Test")   #This is a new graph but it is allowed to have an existing graph with nodes and edges already added
-#' geneList=c("hsa:122706","hsa:4221","hsa:8312")
-#' up = UniProt.ws()
+#' biopax= readBiopax("TCR.R-HSA-202403_level2.owl") #The file is parsed using rbiopaxparser
 #' graph=addGenesLayer(g,geneList)
-addGenesLayer <- function(g, geneList) {
+
+addGenesLayer <- function(g, biopax) {
   g = addLayer(g, "KEGGGenes")
-  genes = getKeggGene(geneList)
-  genes = interactionKegg(genes)
-  genes = simplifyInteractionKegg(genes)
-  
+  data = getKeggUpkbRelations(g, biopax)
+  genesList = data$keggid
+  proteinsList = data$upid
+  sourcekegg = data$source.y
+  sourcedb = data$source.x
+  internalid = data$internalid
+  geneattributes = data$keggattributes
+  kegginternalid = c()
+  nbnodesskip = 0 #count of nodes skipped
   nbnodes = 0 #count of nodes added
   nbedges = 0 #count of edges added
   #Add Genes' Nodes
   message("Multipath: Adding GENE Nodes")
-  nodesToAdd=unique(genes[,1])
-  for(i in 1:length(nodesToAdd)){
-    if (is.null (getNode(g, nodesToAdd[i]))) {
+  nodesToAdd = genesList
+  for (i in 1:length(nodesToAdd)) {
+    graphnodes = getNodeAttributes(g)
+    genenodes = dplyr::select(graphnodes, c("database", "id"))
+    genenodes = genenodes[genenodes$database %in% c("KEGGGenes"), ]
+    if (isFALSE(nodesToAdd[i] %in% genenodes$id)) {
       nbnodes = nbnodes + 1
       g = mully::addNode(
         g,
-        nodeName = paste0("KEGGGene",nbnodes),
+        nodeName = paste0("KEGGGene", nbnodes),
         layerName = "KEGGGenes",
-        # attributes = genes[i,4],
-        attributes =  list("id"=nodesToAdd[i],"database" = "KEGG")
+        attributes =  list(
+          "id" = nodesToAdd[i],
+          "database" = paste(sourcekegg[i], sourcedb[i], sep = ", "),
+          "description" = geneattributes[i]
+        )
       )
-          message("Multipath: DONE - GENE Nodes Added")
+      nodeName = paste0("KEGGGene", nbnodes)
+      kegginternalid = c(kegginternalid, nodeName)
+      message(paste(
+        "Multipath: DONE - GENE Node Added:",
+        paste0("KEGGGene", nbnodes),
+        "ID=",
+        nodesToAdd[i],
+        sep = " "
+      ))
     }
-  }   
-  
-  message("Added Nodes = ", nbnodes)
-  return(g)
-}
-# addAllGenesEdges <- function(g,geneList){
-# 
-# internalId= getInternalIDs(g)
-# message("Multipath: Adding Edges")
-# for (i in 1:length(genes[,1])) {
-#   startName= internalId[which(internalId$extid==genes[i,1]),]$id
-#   endname = internalId[which(internalId$extid==genes[i,2]),]$id
-#   for (j in 1:length(endname)){
-#     endName=endname[j]
-#     print(paste0(startName,endName,sep=" and "))
-#     if(!is.na(endName) & !is.null(startName) & !is.null(endName) & length(startName)!=0 & length(endName)!=0 & getIDEdge(g,startName,endName) == 0 ){
-#       g = mully::addEdge(g,nodeStart=startName,nodeDest=endName,list("source" = "kegggenes"))
-#       nbedges = nbedges + 1
-#       message("Multipath: DONE - GENE Edge Added")
-#       
-#     }
-#   }
-# }
-
-#  
-#   message(" Added Edges = ", nbedges)
-#   return(g)
-# }
-addGenesEdges <- function(g,relation){
-  nbedges = 0 #count of edges added
-  internalId= getInternalIDs(g)
-  message("Multipath: Adding Edges")
-  for (i in 1:length(relation[,1])) {
-    startName= V(g)[which(V(g)$id==relation[i,1])]$name
-    endname = internalId[which(internalId$extid==relation[i,2]),2]
-    for (j in 1:length(endname)){
-      endName=endname[j]
-      if(!is.na(endName) && !is.null(startName) & !is.null(endName) & length(startName)!=0 & length(endName)!=0 ){
-        g = mully::addEdge(g,nodeStart=startName,nodeDest=endName,list("source" = relation[i,3] ))
-        nbedges = nbedges + 1
-        message("Multipath: DONE - GENE Edge Added")
-        
-      }
+    else{
+      message(paste(
+        "Skipping: Node already exists",
+        "NodeID=",
+        nodesToAdd[i],
+        sep = " "
+      ))
+      nbnodesskip = nbnodesskip + 1
+      kegginternalid = c(kegginternalid, NA)
+      
     }
   }
+  message("Added Nodes = ", nbnodes)
+  message("Skipped Nodes = ", nbnodesskip)
+  data = cbind(data, kegginternalid)
+  kegginternalid = data$kegginternalid
   
-  message(" Added Edges = ", nbedges)
+  #Adding Edges
+  nbedges = 0 #count of edges added
+  startName = data$internalid
+  print(startName)
+  endName = data$kegginternalid
+  print(endName)
+  for (i in 1:length(genesList)) {
+    if (!is.na(endName[i])) {
+      g = mully::addEdge(g,
+                         nodeStart = startName[i],
+                         nodeDest = endName[i],
+                         list("source" = paste(sourcekegg[i], sourcedb[i], sep =
+                                                 ",")))
+      nbedges = nbedges + 1
+      message("Multipath: DONE - GENE Edge Added  ",
+              paste(endName[i], startName[i], sep = "<>"))
+    }
+    
+  }
   return(g)
 }
 
+#' @param geneList    List of Genes as formatted in KEGG Gene
 
 #' Get KEGG Genes to UniProt relations from KEGG
-#'
-#' @param geneList    List of Genes as formatted in KEGG Genes 
+#'s
 #' @param proteinList List of Proteins as formatted in UPKB
+#' @param dbName      Name of database to find as string- only 1 input allowed
 #'
 #' @return Dataframe of the Genes-Proteins relation
 #' @export
@@ -288,28 +296,40 @@ addGenesEdges <- function(g,relation){
 #' @examples
 #' proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
 #' geneList=c("hsa:122706","hsa:4221","hsa:8312")
-#' kEGG2UPKB = getKEGGtoUPKB(geneList,proteinList)
+#' kEGG2UPKB = getKEGGtoDATABASE(geneList,proteinList)
 
-getKEGGtoUPKB <- function(geneList, proteinList) {
-  genesKegg = getKeggGene(geneList)
-  genesKegg = interactionKegg(genesKegg)
-  genesKegg = simplifyInteractionKegg(genesKegg)
-  genes = (dplyr::filter(genesKegg, dbName == "UniProt"))
-  allRelations = dplyr::select(genes, c("keggEntry", "dbId","source"))
-  names(allRelations) = c("keggid", "upid","source")
-  allRelations = allRelations[order(allRelations$upid), ]
-  if (missing(geneList)) {
-    return(allRelations)
+getKEGGtoDATABASE <-
+  function(dbName, geneList, toDatabaseList = optional) {
+    genesKegg = getKeggGene(geneList)
+    genesKegg = interactionKegg(genesKegg)
+    genesKegg = simplifyInteractionKegg(genesKegg)
+    genes = applyFilter(genesKegg, dbName)
+    allRelations = dplyr::select(genes, c("keggEntry", "dbId", "source", "attributes"))
+    names(allRelations) = c("keggid", dbName, "source", "keggattributes")
+    allRelations = allRelations[order(allRelations[[dbName]]), ]
+    if (missing(toDatabaseList)) {
+      return(allRelations)
+    }
+    relations = allRelations[which(allRelations[[dbName]] %in% toDatabaseList), ]
+    return(relations)
   }
-  relations = allRelations[which(allRelations$'upid' %in% proteinList), ]
-  return(relations)
+
+applyFilter <- function(dataFrame, columnName) {
+  if (tolower(columnName) == "uniprot")
+    df = (dplyr::filter(dataFrame, dbName == "UniProt"))
+  if (tolower(columnName) == "omim")
+    df = (dplyr::filter(dataFrame, dbName == "OMIM"))
+  if (tolower(columnName) == "ensembel")
+    df = (dplyr::filter(dataFrame, dbName == "Ensembl"))
+  
+  return(df)
 }
 
 #' Get UniProt Proteins to KEGG Genes relations from UPKB
 #'
 #' @param up          The UniProt.ws Object
 #' @param proteinList List of Proteins as formatted in UPKB
-#' @param geneList    List of Genes as formatted in KEGG Genes 
+#' @param geneList    List of Genes as formatted in KEGG Genes
 #'
 #' @return Dataframe of the Proteins-Genes relation
 #' @export
@@ -319,114 +339,61 @@ getKEGGtoUPKB <- function(geneList, proteinList) {
 #' proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
 #' geneList=c("hsa:122706","hsa:4221","hsa:8312")
 #' UPKB2KEGG = getUPKBtoKEGG(up,geneList,proteinList)
-#' 
-getUPKBtoKEGG<-function(up,proteinList,geneList){
-  allRelations=getUPKBInfo(up,proteinList,col = c("UNIPROTKB","KEGG"))
-  allRelations = cbind(allRelations,"source"="UPKB")
-  names(allRelations)=c("upid","keggid","source")
-  allRelations=allRelations[order(allRelations$upid),]
-  if(missing(geneList)){
-    return(allRelations)
-  }
-  relations=allRelations[which(allRelations$'keggid'%in%geneList),]
-  return(relations)
-}
-
-#' Get KEGG Genes to UniProt relations from KEGG
 #'
-#' @param geneList    List of Genes as formatted in KEGG Genes 
-#' @param proteinList List of Proteins as formatted in UPKB
-#'
-#' @return Dataframe of the Genes-Proteins relation
-#' @export
-#'
-#' @examples
-#' proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
-#' geneList=c("hsa:122706","hsa:4221","hsa:8312")
-#' kEGG2UPKB = getKEGGtoUPKB(geneList,proteinList)
-
-getKEGGtOMIM<- function(geneList, proteinList) {
-  genesKegg = getKeggGene(geneList)
-  genesKegg = interactionKegg(genesKegg)
-  genesKegg = simplifyInteractionKegg(genesKegg)
-  genes = (filter(genesKegg, dbName == "UniProt"))
-  allRelations = dplyr::select(genes, c("keggEntry", "dbId"))
-  names(allRelations) = c("keggid", "upid")
-  allRelations = allRelations[order(allRelations$upid), ]
+getUPKBtoKEGG <- function(up, proteinList, geneList) {
+  allRelations = getUPKBInfo(up, proteinList, col = "xref_kegg")
+  allRelations = cbind(allRelations, "source" = "UPKB")
+  names(allRelations) = c("UniProt", "keggid", "source")
+  allRelations = allRelations[order(allRelations$UniProt),]
   if (missing(geneList)) {
     return(allRelations)
   }
-  relations = allRelations[which(allRelations$'upid' %in% proteinList), ]
+  relations = allRelations[which(allRelations$'keggid' %in% geneList),]
   return(relations)
 }
-# library(biodb)
-# library(classyfireR)
 
-#get other database cross reference when found from upkb by dbABBRV
-getUPKBtoCrossReference <- function(proteinList, dbAbbrv) {
-  df_upkbtoany = data.frame(
-    Entry = is.character(c()),
-    CrossReference = is.character(c()),
-    stringsAsFactors = FALSE
-  )[-1, ]
-  h = 1
-  i = 1
-  while (i <= length(proteinList)) {
-    #Set of 100 elements
-    indexEnd = h * 100
-    if (length(proteinList) <= indexEnd)
-      indexEnd = length(proteinList)
-    #Check if out of bound
-    if (indexEnd > length(proteinList))
-      indexEnd = length(proteinList)
-    list_protein =  c(proteinList[i:indexEnd])
-    df_queryentry = queryfromUPKB(list_protein, dbAbbrv)
-    df_upkbtoany = merge.data.frame(
-      x = df_upkbtoany,
-      y = df_queryentry,
-      all.x = TRUE,
-      all.y = TRUE
-    )
-    i = indexEnd + 1
-    h = h + 1
-  }
-  df_upkbtoany = df_upkbtoany[,-which(colnames(df_upkbtoany) %in% c("CrossReference"))]
-  return(df_upkbtoany)
-}
-queryfromUPKB <- function(proteinList, dbAbbrv) {
-  queryentry = c()
-  queryentrybtwn = "+or+"
-  dbname = dbAbbrv
-  for (i in 1:length(proteinList)) {
-    queryentrytemp = noquote(proteinList[i])
-    queryentrytemp = paste(noquote("id:"), queryentrytemp, sep = "")
-    if (i == length(proteinList))
-      queryentry = paste(queryentry, queryentrytemp, sep = "")
-    if (i < length(proteinList))
-      queryentry = paste(queryentry, queryentrytemp, queryentrybtwn, sep = "")
-  }
-  generatelink =  paste (
-    noquote("https://www.uniprot.org/uniprot/?query="),
-    queryentry,
-    noquote("&format=tab&columns=id,"),
-    noquote("database("),
-    dbname,
-    noquote(")"),
-    sep = ""
-  )
-  result = fread(generatelink)
-  df_queryentry = result
-  return(df_queryentry)
+#' Gets the genes and proteins that are referenced to each other
+#'
+#' @param g            A Mully graph object
+#' @param biopax   A biopax object
+#'
+#' @return              Dataframe of related proteins and genes
+#' @export
+#'
+#' @examples
+getKeggUpkbRelations <- function(g, biopax) {
+  upkbtokeggDf = getRelatedGenes(g, biopax)
+  geneList = upkbtokeggDf$keggid
+  keggtoupkbDf = getKEGGtoDATABASE("UniProt", geneList)
+  names(keggtoupkbDf) = c("keggid", "uniprotid", "source", "keggattributes")
+  relations = merge.data.frame(upkbtokeggDf,
+                               keggtoupkbDf,
+                               by = c("keggid", "uniprotid"),
+                               all = T)
+  relations = na.omit(relations)
+  return(relations)
 }
 
+#' Gets the genes and proteins that are referenced to each other
+#'
+#' @param up            The UniProt.ws Object
+#' @param proteinList   List of Proteins as formatted in UPKB
+#' @param geneList      List of Genes as formatted in KEGG Genes
+#'
+#' @return              Dataframe of related proteins and genes
+#' @export
+#'
+#' @examples
 getKEGGGenesUPKBRelations <- function(up, proteinList, geneList) {
-  upkbtokegg = na.omit(getUPKBtoKEGG(up, proteinList, geneList))
-  upkbtokegg = upkbtokegg[-which(upkbtokegg[,1] == "NA" | upkbtokegg[,2] == "NA"),]
-  keggtoupkb = na.omit(getKEGGtoUPKB(geneList, proteinList))
-  keggtoupkb = keggtoupkb[-which(keggtoupkb[,1] == "NA" | keggtoupkb[,2] == "NA"),]
+  upkbtokegg = getUPKBtoKEGG(up, proteinList, geneList)
+  #upkbtokegg = upkbtokegg[-which(upkbtokegg[, 1] == "NA" |upkbtokegg[, 2] == "NA"), ]
+  
+  keggtoupkb = getKEGGtoDATABASE("UniProt", geneList, proteinList)
+  #keggtoupkb = keggtoupkb[-which(keggtoupkb[, 1] == "NA" | keggtoupkb[, 2] == "NA"), ]
+  
   relations = merge.data.frame(upkbtokegg,
                                keggtoupkb,
-                               by = c("keggid", "upid"),
+                               by = c("keggid", "UniProt"),
                                all = T)
   for (i in 1:length(relations$keggid)) {
     relations$source[i] = ""
@@ -436,28 +403,321 @@ getKEGGGenesUPKBRelations <- function(up, proteinList, geneList) {
       relations$source[i] = paste(relations$source[i], relations$'source.y'[i])
     relations$source[i] = str_trim(relations$source[i], side = "right")
   }
-  relations = relations[, c("keggid", "upid", "source")]
+  relations = relations[, c("keggid", "UniProt", "source")]
   relations = relations[order(relations$keggid),]
   return(relations)
 }
 
-getUPKBDBRelations<-function(up,data,proteinList,drugList){
-  upkbtodb=getUPKBtoDB(up,proteinList,drugList)
-  dbtoupkb=getDBtoUPKB(data,drugList,proteinList)
-  lnames=intersect(names(upkbtodb),names(dbtoupkb))
-  upkbtodb$source="UniProt"
-  dbtoupkb$source="DrugBank"
-  relations=merge.data.frame(upkbtodb,dbtoupkb[ ,c("dbid","upid","type","dbproteinid","source")],by=lnames,all=T)
-  relations$source=paste(relations$'source.x'," ",relations$'source.y')
-  relations=relations[,c("dbid","upid","type","dbproteinid","source")]
-  relations=relations[order(relations$dbid),]
+#' Get proteins that has a reference to KEGG Genes from a mully graph and a biopax
+#'
+#' @param g        A Mully graph
+#' @param biopax   A biopax file
+#'
+#' @return         List of Protein
+#' @export
+#'
+#' @examples
+getRelatedGenes <- function (g, biopax) {
+  allextIDs = getExternalIDs(biopax, getLayer(g, "protein")$name)
+  extIDs = unique(allextIDs[which(allextIDs$database == "UniProt"),]$extid)
+  #genesfupkb = getUPKBInfo(UniProt.ws(), extIDs, col = c("UNIPROTKB", "KEGG"))
+  genesfupkb = getUPKBInfo(UniProt.ws::UniProt.ws(), extIDs, col = "xref_kegg")
+  names(genesfupkb) = c("extid", "keggid")
+  upids = allextIDs[which(allextIDs$extid %in% genesfupkb$extid),]
+  genesfupkb =  merge.data.frame(genesfupkb, upids, by = "extid")
+  names(genesfupkb) = c("uniprotid", "keggid", "internalid", "source")
+  return(genesfupkb)
+}
+
+#' Get KEGG Genes to Omim relations from KEGG
+#'
+#' @param geneList    List of Genes as formatted in KEGG Genes
+#'
+#' @return Dataframe of the Genes-Disease relation
+#' @export
+#'
+#' @examples
+#'
+#' proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
+#' geneList=c("hsa:122706","hsa:4221","hsa:8312")
+#' kEGG2OMIM = getKEGGtoOMIM(geneList,proteinList)
+
+getKEGGtoOMIM <- function(geneList) {
+  genesKegg = getKeggGene(geneList)
+  genesKegg = interactionKegg(genesKegg)
+  genesKegg = simplifyInteractionKegg(genesKegg)
+  genes = dplyr::filter(genesKegg, dbName == "OMIM")
+  genesToOmim = dplyr::select(genes, c("keggEntry", "dbId", "source"))
+  return(genesToOmim)
+}
+
+#' Get Omim to KEGG Genes relations from OMIM
+#'
+#' @param omimIds list of OMIM Ids
+#'
+#' @return Dataframe of the Genes-OMIM relation
+#' @export
+#'
+#'@Note should be preceded by calling  set_key('KEY')
+#' @examples
+getOmimToKEGG <- function(omimIds) {
+  df_omim = data.frame(
+    OMIM = c(),
+    KEGGID = c(),
+    source = c(),
+    attributes = c(),
+    stringsAsFactors = FALSE
+  )
+  for (i in 1:length(omimIds)) {
+    entry = as.character(omimIds[i])
+    omim_result = get_omim(entry, geneMap = TRUE)
+    omim_data = xmlToList(omim_result)
+    omim_title = omim_data$entryList$entry$titles$preferredTitle
+    omim_gene = omim_data$entryList$entry$geneMap$geneIDs
+    translateGeneID2KEGGID = translateGeneID2KEGGID(omim_gene)
+    new_row = data.frame(
+      OMIM = entry,
+      KEGGID = translateGeneID2KEGGID,
+      source = "OMIM",
+      attributes = omim_title
+    )
+    df_omim = rbind(df_omim, new_row)
+  }
+  return(df_omim)
+}
+
+#' Gets the genes and diseases that are referenced to each other. Genes are extracted from the graph
+#'
+#' @param g A Mully Graph Object
+#' @param biopax A Biopax Object
+#'
+#' @return A Dataframe with kegggenes ids and omim ids
+#' @export
+#'
+#' @note must be preceded by addGenesLayer(g,biopax) function
+#'
+#' @examples
+#' biopax=readBiopax("wnt.owl")
+#' pathwayID=listPathways(biopax)$id[1]
+#' g=Multipath::pathway2Mully(biopax,pathwayID)
+#' g=addGenesLayer(g,biopax)
+#' dataframe = getKeggOmimRelation(g,biopax)
+getKeggOmimRelation <- function(g, biopax) {
+  gene_list = getLayer(g, "KEGGGenes")$id
+  gene_internalid = getLayer(g, "KEGGGenes")$name
+  df_gene_internalid = data.frame(KeggEntry = gene_list,
+                                  gene_internalid = gene_internalid)
+  keggToOmim = getKEGGtoOMIM(gene_list)
+  df_gene_internalid = df_gene_internalid[which(keggToOmim$keggEntry  %in%  my_data$KeggEntry), ]$gene_internalid
+  keggToOmim = cbind(keggToOmim, df_gene_internalid)
+  names(keggToOmim) = c("KEGGID", "OMIM", "source", "geneInternalId")
+  getOmimToKEGG = getOmimToKEGG(keggToOmim$OMIM)
+  relations = merge.data.frame(keggToOmim,
+                               getOmimToKEGG,
+                               by = c("KEGGID", "OMIM"),
+                               all = T)
+  relations$source = paste(relations$source.x, relations$source.y, sep = "; ")
+  relations = relations %>% select(-source.x, -source.y)
+  
+  relations = na.omit(relations)
   return(relations)
 }
 
-getRelatedGenes <- function (g,biopax,layer,database){
-  allextIDs = getExternalIDs(biopax,getLayer(g,layer)$name)
-  extIDs = unique(allextIDs[which(allextIDs$database==database),]$extid)
-  genesfupkb=getUPKBInfo(UniProt.ws(),extIDs,col = c("UNIPROTKB","KEGG"))
+#' Get Omim to UPKB relations from OMIM
+#'
+#' @param omimIds list of OMIM Ids
+#'
+#' @return Dataframe of the Proteins-OMIM relation
+#' @export
+#'
+#'@Note should be preceded by calling  set_key('KEY')
+#' @examples
+getOmimToUPKB <- function(omimIds) {
+  df_omim = data.frame(
+    OMIM = c(),
+    UPid = c(),
+    source = c(),
+    attributes = c(),
+    stringsAsFactors = FALSE
+  )
+  for (i in 1:length(omimIds)) {
+    entry = as.character(omimIds[i])
+    omim_result = get_omim(entry, geneMap = TRUE)
+    omim_data = xmlToList(omim_result)
+    omim_title = omim_data$entryList$entry$titles$preferredTitle
+    omim_protein  = omimdata$entryList$entry$externalLinks$swissProtIDs
+    new_row = data.frame(
+      OMIM = entry,
+      Upid = omim_protein,
+      source = "OMIM",
+      attributes = omim_title
+    )
+    df_omim = rbind(df_omim, new_row)
+  }
+  return(df_omim)
+}
+
+
+#' Add OMIM Layer with its respective Nodes
+#'
+#' @param g A Mully graph
+#' @param biopax A Biopax object
+#'
+#' @return g A Mully graph including OMIM nodes and possible edges
+#' @export
+#'
+#' @examples
+#' g= mully("Test")   #This is a new graph but it is allowed to have an existing graph with nodes and edges already added
+#' biopax= readBiopax("TCR.R-HSA-202403_level2.owl") #The file is parsed using rbiopaxparser
+#' g=addGenesLayer(g,biopax)
+#' g=addDiseaseLayer(g,biopax)
+addDiseaseLayer <- function(g, biopax) {
+  g = addLayer(g, "OMIM")
+  if (!isLayer(g, "KEGGGenes"))
+    g = addGenesLayer(g, biopax)
   
-  return(genesfupkb)
+  data = getKeggOmimRelation(g, biopax)
+  omimIds = data$OMIM
+  keggIds = data$KEGGID
+  source = data$source
+  attributes = data$attributes
+  nbnodes = 0 #count of nodes added
+  nbedges = 0 #count of edges added
+  nbnodesskip = 0
+  #Add Genes' Nodes
+  message("Multipath: Adding GENE Nodes")
+  nodesToAdd = unique(omimIds)
+  omiminternalid = c()
+  graphnodes = getNodeAttributes(g)
+  diseasenodes = dplyr::select(graphnodes, c("database", "id"))
+  diseasenodes = diseasenodes[diseasenodes$database %in% c("OMIM"), ]
+  for (i in 1:length(nodesToAdd)) {
+    if (isFALSE(nodesToAdd[i] %in% diseasenodes$id)) {
+      nbnodes = nbnodes + 1
+      g = mully::addNode(
+        g,
+        nodeName = paste0("OMIM", nbnodes),
+        layerName = "OMIM",
+        attributes =  list(
+          "id" = nodesToAdd[i],
+          "database" = source[i],
+          "description" = attributes[i]
+        )
+      )
+      nodeName = paste0("OMIM", nbnodes)
+      omiminternalid = c(omiminternalid, nodeName)
+      message(
+        paste(
+          "Multipath: DONE - Disease Node Added:",
+          paste0("OMIM", nbnodes),
+          "ID=",
+          nodesToAdd[i],
+          sep = " "
+        )
+      )
+    }
+    else{
+      message(paste(
+        "Skipping: Node already exists",
+        "NodeID=",
+        nodesToAdd[i],
+        sep = " "
+      ))
+      nbnodesskip = nbnodesskip + 1
+      omiminternalid = c(omiminternalid, NA)
+      
+    }
+  }
+  
+  message("Added Nodes = ", nbnodes)
+  message("Skipped Nodes = ", nbnodesskip)
+  data = cbind(data, omiminternalid)
+  omiminternalid = data$omiminternalid
+  
+  #Adding OMIM-KEGG Edges
+  
+  nbedges = 0 #count of edges added
+  startName = data$geneInternalId
+  endName = omiminternalid
+  
+  for (i in 1:length(startName)) {
+    if (!is.na(endName[i])) {
+      g = mully::addEdge(g,
+                         nodeStart = startName[i],
+                         nodeDest = endName[i],
+                         list("source" = source[i]))
+      nbedges = nbedges + 1
+      message("Multipath: DONE - Disease Edge Added  ",
+              paste(endName[i], startName[i], sep = "<>"))
+    }
+  }
+  #Adding OMIM-Proteins Edges
+  
+  nbedges = 0 #count of edges added
+  df_omimfromUPKB = getUPKBRelatedDiseases(g, biopax)
+  for (i in 1:length(df_omimfromUPKB$omimid)) {
+    nodeName = which(getLayer(g, "OMIM")$id == df_omimfromUPKB$omimid[i])
+    print(nodeName)
+    if (length(nodeName) == 0) {
+      nbnodes = nbnodes + 1
+      g = addNode(
+        g,
+        nodeName = paste0("OMIM", nbnodes),
+        layerName = "OMIM",
+        attributes = list("id" = df_omimfromUPKB$omimid[i])
+      )
+      print("ADDED")
+    }
+  }
+  
+  for (i in 1:nrow(df_omimfromUPKB)) {
+    omim_internalid = getLayer(g, "OMIM")$name[which(getLayer(g, "OMIM")$id == df_omimfromUPKB$omimid[i])]
+    protein_internalid = df_omimfromUPKB$protein_internalid[i]
+    g = mully::addEdge(g,
+                       nodeStart = omim_internalid,
+                       nodeDest = protein_internalid,
+                       list("source" = "UniProt;OMIM"))
+    nbedges = nbedges + 1
+    message(
+      "Multipath: DONE - Disease Edge Added  ",
+      paste(omim_internalid, protein_internalid, sep = "<>")
+    )
+  }
+  return(g)
+}
+
+#' Get proteins that has a reference to OMIM from a mully graph and a biopax
+#'
+#' @param g        A Mully graph
+#' @param biopax   A biopax file
+#'
+#' @return         Dataframe of Proteins-OMIM relation
+#' @export
+#'
+#' @examples
+getUPKBRelatedDiseases <- function (g, biopax) {
+  allextIDs = getExternalIDs(biopax, getLayer(g, "protein")$name)
+  extIDs = unique(allextIDs[which(allextIDs$database == "UniProt"),]$extid)
+  omimfupkb = getUPKBInfo(UniProt.ws::UniProt.ws(), extIDs, col = "xref_mim")
+  names(omimfupkb) = c("extid", "omimid")
+  df_omimfupkb = data.frame(extid = c(),
+                            omimid = c())
+  
+  for (i in 1:nrow(omimfupkb)) {
+    omimid = omimfupkb$omimid[i]
+    
+    # split the omimid into split of six characters
+    split = substring(omimid, seq(1, nchar(omimid), 6),
+                      seq(6, nchar(omimid) + 5, 6))
+    for (i in 1:length(split)) {
+      new_row = data.frame(extid = omimfupkb$extid[i], omimid = split[i])
+      df_omimfupkb = rbind(df_omimfupkb, new_row)
+    }
+  }
+  protein_extid = allextIDs$extid[match(df_omimfupkb$extid, allextIDs$extid)]
+  protein_internalid = allextIDs$id[match(df_omimfupkb$extid, allextIDs$extid)]
+  upids = data.frame(id =  protein_internalid, extid = protein_extid)
+  df_omimfupkb = cbind(df_omimfupkb, upids$id)
+  names(df_omimfupkb) = c("uniprotid", "omimid", "protein_internalid")
+  return(df_omimfupkb)
 }
