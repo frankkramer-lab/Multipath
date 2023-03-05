@@ -4,12 +4,12 @@
 \alias{addGenesLayer}
 \title{Add KEGG Gene Layer with its respective Nodes}
 \usage{
-addGenesLayer(g, geneList, biopax)
+addGenesLayer(g, biopax)
 }
 \arguments{
 \item{g}{An existing Mully graph}
 
-\item{geneList}{A list of KEGG genes to add}
+\item{biopax}{A biopax file}
 }
 \value{
 A Mully graph with the all layers,nodes and edges
@@ -18,8 +18,11 @@ A Mully graph with the all layers,nodes and edges
 Add KEGG Gene Layer with its respective Nodes
 }
 \examples{
-g= mully("Test")   #This is a new graph but it is allowed to have an existing graph with nodes and edges already added
-geneList=c("hsa:122706","hsa:4221","hsa:8312")
-up = UniProt.ws()
-graph=addGenesLayer(g,geneList)
+biopax=readBiopax("wnt.owl") #This is a mully graph that contains a protein layer
+pathwayID=listPathways(biopax)$id[1]
+g=Multipath::pathway2Mully(biopax,pathwayID)
+g=addGenesLayer(g,biopax)
+}
+\author{
+Mohammad Al Maaz
 }

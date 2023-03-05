@@ -8,7 +8,7 @@ addUPKBLayer(
   g,
   up,
   proteinList,
-  col = c("UNIPROTKB", "PROTEIN-NAMES", "ORGANISM")
+  col = c("UniProtKB", "protein_name", "organism_name")
 )
 }
 \arguments{
@@ -33,6 +33,6 @@ Should be preceded by UniProt.ws() to get the UniProt.ws Object
 \dontrun{ 
 up=UniProt.ws()
 g=mully("UniProt")
-g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
+g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UniProtKB","protein_name"))
 }
 }

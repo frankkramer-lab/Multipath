@@ -18,5 +18,7 @@ Get Kegg gene
 \examples{
 geneList=c("hsa:122706","hsa:4221","hsa:8312")
 genes=  getKeggGene(geneList)
-
+}
+\author{
+Mohammad Al Maaz
 }

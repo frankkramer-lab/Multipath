@@ -24,3 +24,6 @@ must be precedeed by getkegggenes(geneInput)
 geneList=c("hsa:122706","hsa:4221","hsa:8312")
 genes=  getKeggGene(geneList)
 }
+\author{
+Mohammad Al Maaz
+}

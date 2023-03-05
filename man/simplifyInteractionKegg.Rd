@@ -24,3 +24,6 @@ genes = getKeggGene(geneList)
 genesinteraction = interactionKegg(genes)
 genesinteractionsimplified =simplifyInteractionKegg(genesinteraction)
 }
+\author{
+Mohammad Al Maaz
+}
