@@ -14,8 +14,8 @@
 #' allProteins=getAllUPKB(up)
 #' }
 getAllUPKB <- function(up){
-  entriesList=UniProt.ws::keys(up,"UNIPROTKB")
-  return(getUPKBInfo(up,entriesList,c("PROTEIN-NAMES")))
+  entriesList=UniProt.ws::keys(up,"UniProtKB")
+  return(getUPKBInfo(up,entriesList,c("protein_name")))
 }
 
 #' Get Proteins from UniProtKB
@@ -34,31 +34,38 @@ getAllUPKB <- function(up){
 #' @examples
 #' \dontrun{ 
 #' up <- UniProt.ws()
-#' getUPKBInfo(up,c("Q6ZS62","P14384"),c("PROTEIN-NAMES","GO")) 
+#' getUPKBInfo(up,c("Q6ZS62","P14384"),c("protein_name","go")) 
 #'} 
 #' @importFrom UniProt.ws select 
 getUPKBInfo <- function(up,proteins,col){
-  dfProt=data.frame(as.list(c("UNIPROTKB",col)),stringsAsFactors = FALSE)
+  upcols=UniProt.ws::columns(up)
+  boolval=col %in% upcols
+  if(FALSE %in% boolval)
+    stop("Please check the names of the columns. To find available column names call UniProt.ws::columns(up)")
+  dfProt=data.frame(as.list(c("id","UNIPROTKB",col)),stringsAsFactors = FALSE)
   dfProt=dfProt[-1,]
-  names(dfProt)=c("UNIPROTKB",col)
+  names(dfProt)=c("id","UNIPROTKB",col)
   skip=F
   for(i in 1:length(proteins)){
     skip=F
     upID=proteins[i]
     #tryCatch to skip errors for non-UniProtKB IDs
     tryCatch({
-      row=UniProt.ws::select(up,columns=col,keys=upID,keytype="UNIPROTKB")
+      row=UniProt.ws::select(up,columns=col,keys=upID,keytype="UniProtKB")
+      row=as.list(gsub(';','',row))
+      print(paste(i,"Entry Found for",proteins[i],sep = ":")) 
+      names(row)=c("id","UNIPROTKB",col)
       dfProt=rbind(dfProt,row)
     },error=function(e){
-        skip=T
-        warning(paste("The following Protein ID does not exist and will be skipped:",upID))
-      },finally={
-        if(skip==T)
-          next()
-        }
-      )
+      skip=T
+      warning(paste("The following Protein ID does not exist and will be skipped:",upID))
+    },finally={
+      if(skip==T)
+        next()
+    }
+    )
   }
-  return(dfProt)
+  return(dfProt[,-1])
 }
 
 #' Get the interactions of given proteins from UniProt
@@ -79,20 +86,20 @@ getUPKBInfo <- function(up,proteins,col){
 #' }
 #' @importFrom stringr str_split
 getUPKBInteractions<-function(up,proteins){
-  allInteractions=getUPKBInfo(up,proteins,c("UNIPROTKB","INTERACTOR"))
+  allInteractions=getUPKBInfo(up,proteins,c("cc_interaction"))
   interactions=data.frame(V1=is.character(c()),V2=is.character(c()),stringsAsFactors = F)[-1,]
   rows=dim(allInteractions)[1]
   if(rows==0)
     return(interactions)
   for(i in 1:rows){
-    listInter=as.list(str_split(allInteractions[i,2],'; '))
+    listInter=as.list(str_split(allInteractions[i,2],' '))
     listInter=listInter[[1]]
     listInter=listInter[which(listInter%in%proteins)]
     if(length(listInter)==0)
       next()
     for(j in 1:length(listInter)){
       entry=c(allInteractions[i,1],listInter[j])
-      if(rev(entry)%in%interactions)
+      if(tail(duplicated(rbind(interactions,rev(entry))),1)>0)
         next()
       interactions[dim(interactions)[1]+1,]=entry
     }
@@ -117,17 +124,17 @@ getUPKBInteractions<-function(up,proteins){
 #' \dontrun{ 
 #' up=UniProt.ws()
 #' g=mully("UniProt")
-#' g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
+#' g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UniProtKB","protein_name"))
 #' }
 #' @import mully
 #' @importFrom svMisc progress
-addUPKBLayer<-function(g,up,proteinList,col=c("UNIPROTKB","PROTEIN-NAMES","ORGANISM")){
+addUPKBLayer<-function(g,up,proteinList,col=c("UniProtKB","protein_name","organism_name")){
   upmully=addLayer(g,"UniProt")
   if(!"UNIPROTKB"%in%col)
     col=append(c("UNIPROTKB"),col)
   proteins=getUPKBInfo(up,proteinList,col)
   interactions=getUPKBInteractions(up,proteins$UNIPROTKB)
-
+  
   #Add Proteins' Nodes
   message("Multipath: Adding Protein Nodes")
   for (i in 1:dim(proteins)[1]) {
