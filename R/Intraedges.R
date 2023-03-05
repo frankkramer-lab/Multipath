@@ -124,3 +124,231 @@ getUPKBDBRelations<-function(up,data,proteinList,drugList){
   relations=relations[order(relations$dbid),]
   return(relations)
 }
+
+#' Get UniProt Proteins to KEGG Genes relations from UPKB
+#'
+#' @param up          The UniProt.ws Object
+#' @param proteinList List of Proteins as formatted in UPKB
+#' @param geneList    List of Genes as formatted in KEGG Genes
+#'
+#' @return Dataframe of the Proteins-Genes relation
+#' @export
+#' @author Mohammad Al Maaz
+#' @examples
+#' up = UniProt.ws()
+#' proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
+#' geneList=c("hsa:122706","hsa:4221","hsa:8312")
+#' UPKB2KEGG = getUPKBtoKEGG(up,geneList,proteinList)
+getUPKBtoKEGG <- function(up, proteinList, geneList) {
+  allRelations = getUPKBInfo(up, proteinList, col = "xref_kegg")
+  allRelations = cbind(allRelations, "source" = "UPKB")
+  names(allRelations) = c("UniProt", "keggid", "source")
+  allRelations = allRelations[order(allRelations$UniProt),]
+  if (missing(geneList)) {
+    return(allRelations)
+  }
+  relations = allRelations[which(allRelations$'keggid' %in% geneList),]
+  return(relations)
+}
+
+#' Get KEGG Genes to a Database cross-reference  from KEGG
+#'
+#' @param geneList List of Proteins as formatted in UPKB
+#' @param dbName      Name of database to find as string- only 1 input allowed
+#'
+#' @return Dataframe of the Genes-Proteins relation
+#' @export
+#' @importFrom dplyr select
+#' @author Mohammad Al Maaz
+#' @examples
+#' geneList=c("hsa:122706","hsa:4221","hsa:8312")
+#' keggToDb = getKEGGtoDATABASE("UniProt",geneList)
+getKEGGtoDATABASE <-
+  function(dbName, geneList) {
+    genesKegg = getKeggGene(geneList)
+    genesKegg = interactionKegg(genesKegg)
+    genesKegg = simplifyInteractionKegg(genesKegg)
+    if (tolower(dbName) == "uniprot")
+      genes = (dplyr::filter(genesKegg, dbName == "UniProt"))
+    if (tolower(dbName) == "omim")
+      genes = (dplyr::filter(genesKegg, dbName == "OMIM"))
+    if (tolower(dbName) == "ensembel")
+      genes = (dplyr::filter(genesKegg, dbName == "Ensembl"))
+    allRelations = dplyr::select(genes, c("keggEntry", "dbId", "source", "attributes"))
+    names(allRelations) = c("keggid", dbName, "source", "keggattributes")
+    allRelations = allRelations[order(allRelations[[dbName]]), ]
+    return(allRelations)
+  }
+
+#' Get KEGG Genes to Omim relations from KEGG
+#'
+#' @param geneList    List of Genes as formatted in KEGG Genes
+#'
+#' @return Dataframe of the Genes-Disease relation
+#' @export
+#' @author Mohammad Al Maaz
+#' @examples
+#' geneList=c("hsa:122706","hsa:4221","hsa:8312")
+#' kEGG2OMIM = getKEGGtoOMIM(geneList)
+getKEGGtoOMIM <- function(geneList) {
+  genesKegg = getKeggGene(geneList)
+  genesKegg = interactionKegg(genesKegg)
+  genesKegg = simplifyInteractionKegg(genesKegg)
+  genes = dplyr::filter(genesKegg, dbName == "OMIM")
+  genesToOmim =
+    dplyr::select(genes, c("keggEntry", "dbId", "source"))
+  return(genesToOmim)
+  
+}
+
+#' Gets the genes and proteins that are referenced to each other
+#'
+#' @param g            A Mully graph object
+#' @param biopax   A biopax object
+#'
+#' @return              Dataframe of related proteins and genes
+#' @export
+#' @author Mohammad Al Maaz
+#' @examples
+#' up = UniProt.ws()
+#' biopax=readBiopax("wnt.owl") 
+#' pathwayID=listPathways(biopax)$id[1]
+#' g=Multipath::pathway2Mully(biopax,pathwayID) #This is a mully graph that contains a protein layer
+#' g=addGenesLayer(g,biopax)
+#' UPKB2KEGG = getUPKBtoKEGG(g, biopax)
+getKeggUpkbRelations <- function(g, biopax) {
+  upkbtokeggDf = getRelatedGenes(g, biopax)
+  geneList = upkbtokeggDf$keggid
+  keggtoupkbDf = getKEGGtoDATABASE("UniProt", geneList)
+  names(keggtoupkbDf) = c("keggid", "uniprotid", "source", "keggattributes")
+  relations = merge.data.frame(upkbtokeggDf,
+                               keggtoupkbDf,
+                               by = c("keggid", "uniprotid"),
+                               all = T)
+  relations = na.omit(relations)
+  return(relations)
+}
+
+#' Get Omim to UPKB relations from OMIM
+#'
+#' @param omimIds list of OMIM Ids
+#'
+#' @return Dataframe of the Proteins-OMIM relation
+#' @export
+#'
+#' @note  should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
+#' @examples  
+#' library(romim)
+#' romim::set_key('KEY')
+#' OmimToUPKB = getOmimToUPKB(c("611137", "613733", "603816"))
+getOmimToUPKB <- function(omimIds) {
+  df_omim = data.frame(
+    OMIM = c(),
+    UPid = c(),
+    source = c(),
+    attributes = c(),
+    stringsAsFactors = FALSE
+  )
+  for (i in 1:length(omimIds)) {
+    entry = as.character(omimIds[i])
+    omim_result = get_omim(entry, externalLinks = TRUE)
+    omim_data = XML::xmlToList(omim_result)
+    omim_title = omim_data$entryList$entry$titles$preferredTitle
+    omim_protein  = omim_data$entryList$entry$externalLinks$swissProtIDs
+    
+    if (!is.null(omim_protein)) {
+      omim_protein = unlist(str_split(omim_protein, ","))
+      for (i in 1:length(omim_protein)) {
+        new_row = data.frame(
+          OMIM = entry,
+          UPid = omim_protein[i],
+          source = "OMIM",
+          attributes = omim_title
+        )
+        
+        df_omim = rbind(df_omim, new_row)
+      }
+    }
+  }
+  return(df_omim)
+}
+
+#' Get Omim to KEGG Genes relations from OMIM
+#'
+#' @param omimIds list of OMIM Ids
+#' @importFrom romim get_omim
+#' @return Dataframe of the Genes-OMIM relation
+#' @export
+#' @importFrom XML xmlToList
+#' @importFrom  xml2 read_xml
+#' @importFrom  XML xmlParse
+#'
+#' @note  should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
+#' @author Mohammad Al Maaz
+#'
+#' @examples 
+#' library(romim)
+#' romim::set_key('KEY')
+#' kEGG2OMIM = getOmimToKEGG(c("611137", "613733", "603816"))
+getOmimToKEGG <- function(omimIds) {
+  df_omim = data.frame(
+    OMIM = c(),
+    KEGGID = c(),
+    source = c(),
+    attributes = c(),
+    stringsAsFactors = FALSE
+  )
+  for (i in 1:length(omimIds)) {
+    entry = as.character(omimIds[i])
+    omim_result = romim::get_omim(entry, geneMap = TRUE)
+    omim_data = xmlToList(omim_result)
+    omim_title = omim_data$entryList$entry$titles$preferredTitle
+    omim_gene = omim_data$entryList$entry$geneMap$geneIDs
+    translateGeneID2KEGGID = KEGGgraph::translateGeneID2KEGGID(omim_gene)
+    new_row = data.frame(
+      OMIM = entry,
+      KEGGID = translateGeneID2KEGGID,
+      source = "OMIM",
+      attributes = omim_title
+    )
+    df_omim = rbind(df_omim, new_row)
+  }
+  return(df_omim)
+}
+
+#' Gets the genes and diseases that are referenced to each other. Genes are extracted from the graph
+#'
+#' @param g A Mully Graph Object
+#' @param biopax A Biopax Object
+#'
+#' @return A Dataframe with kegggenes ids and omim ids
+#' @export
+#'
+#' @note must be preceded by addGenesLayer(g,biopax) function
+#' @author Mohammad Al Maaz
+#' @examples
+#' biopax=readBiopax("wnt.owl")
+#' pathwayID=listPathways(biopax)$id[1]
+#' g=Multipath::pathway2Mully(biopax,pathwayID)
+#' g=addGenesLayer(g,biopax)
+#' dataframe = getKeggOmimRelation(g,biopax)
+getKeggOmimRelation <- function(g, biopax) {
+  gene_list = getLayer(g, "KEGGGenes")$id
+  gene_internalid = getLayer(g, "KEGGGenes")$name
+  df_gene_internalid = data.frame(KeggEntry = gene_list,
+                                  gene_internalid = gene_internalid)
+  keggToOmim = getKEGGtoOMIM(gene_list)
+  df_gene_internalid = df_gene_internalid[which(keggToOmim$keggEntry  %in%  df_gene_internalid$KeggEntry), ]$gene_internalid
+  keggToOmim = cbind(keggToOmim, df_gene_internalid)
+  names(keggToOmim) = c("KEGGID", "OMIM", "source", "geneInternalId")
+  getOmimToKEGG = getOmimToKEGG(keggToOmim$OMIM)
+  relations = merge.data.frame(keggToOmim,
+                               getOmimToKEGG,
+                               by = c("KEGGID", "OMIM"),
+                               all = T)
+  relations$source = paste(relations$source.x, relations$source.y, sep = "; ")
+  relations = relations %>% dplyr::select(-source.x, -source.y)
+  
+  relations = na.omit(relations)
+  return(relations)
+}
