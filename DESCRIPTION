@@ -15,10 +15,9 @@ Suggests:
     rmarkdown
 Imports:
     mully (>= 2.1.26),
-    UniProt.ws,
+    UniProt.ws (>= 2.39.2),
     dbparser,
     rBiopaxParser,
-    TCGAretriever,
     svMisc,
     uuid,
     dplyr,
