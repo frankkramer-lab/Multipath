@@ -57,13 +57,13 @@ getUPKBInfo <- function(up,proteins,col){
       names(row)=c("id","UNIPROTKB",col)
       dfProt=rbind(dfProt,row)
     },error=function(e){
-        skip=T
-        warning(paste("The following Protein ID does not exist and will be skipped:",upID))
-      },finally={
-        if(skip==T)
-          next()
-        }
-      )
+      skip=T
+      warning(paste("The following Protein ID does not exist and will be skipped:",upID))
+    },finally={
+      if(skip==T)
+        next()
+    }
+    )
   }
   return(dfProt[,-1])
 }
@@ -134,7 +134,7 @@ addUPKBLayer<-function(g,up,proteinList,col=c("UniProtKB","protein_name","organi
     col=append(c("UNIPROTKB"),col)
   proteins=getUPKBInfo(up,proteinList,col)
   interactions=getUPKBInteractions(up,proteins$UNIPROTKB)
-
+  
   #Add Proteins' Nodes
   message("Multipath: Adding Protein Nodes")
   for (i in 1:dim(proteins)[1]) {

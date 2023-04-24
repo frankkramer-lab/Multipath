@@ -1,10 +1,10 @@
 Package: Multipath
 Type: Package
 Title: Pathway Data Integration With Influencing Knowledge Using Multi-Layered Graphs
-Version: 1.0.6
-Author: Zaynab Hammoud
+Version: 1.9.0
+Author@R: c(person("Zaynab", "Hammoud",role=c("aut","cre"),email= "zaynabhassanhammoud@gmail.com"),person("Mohammad", "Al Maaz",role=c("aut"),email= "mohammad.almaaz@outlook.de"))
 Maintainer: Zaynab Hammoud <zaynabhassanhammoud@gmail.com>
-Description: Allows the integration of pathway data with influencing knowledge from different databases, like DrugBank, Reactome and UniProt, by using multilayered graphs.
+Description: Allows the integration of pathway data with influencing knowledge from different databases, like DrugBank, Reactome, UniProt, KEGG and OMIM by using multilayered graphs.
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
@@ -24,5 +24,11 @@ Imports:
     crayon,
     igraph,
     RCurl,
-    graph
+    graph,
+    romim,
+    KEGGREST,
+    KEGGgraph,
+    XML,
+    XML2R,
+    xml2
 VignetteBuilder: knitr
