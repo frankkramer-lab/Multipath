@@ -7,11 +7,10 @@
 #'
 #' @note
 #' This function should be called before using any function to query the DrugBank database. Since the parsing of DrugBank takes time, this function should only be called once.
-#' @importFrom dbparser read_drugbank_xml_db run_all_parsers
 loadDBXML<-function(file){
-  read_drugbank_xml_db(file)
-  data=run_all_parsers()
-  return(data)
+  vectoroptions=dbparser::drug_node_options()
+  data=dbparser:::parseDrugBank(file, drug_options =vectoroptions)
+  return(data$drugs)
 }
 
 #' Get DrugBank drug entry
@@ -29,7 +28,7 @@ loadDBXML<-function(file){
 #' }
 getDBDrug<-function(data,drug){
   drugs=as.data.frame(data[[1]])
-  entry=drugs[which(drugs$'primary_key'%in%drug),]
+  entry=drugs[which(drugs$'drugbank_id'%in%drug),]
   if(length(entry)==0){
     warning("The given DrugBank ID does not exist")
     return(NULL)
@@ -68,8 +67,8 @@ getDBDrugInteractions<-function(data,drug){
   if(length(nonDrugs)!=0)
     warning(paste("The following arguments are not DrugBank IDs and will be skipped:"),nonDrugs)
   #Get the interactions
-  interactions=as.data.frame(data[["interactions"]])
-  drugInteractions=interactions[which(interactions$'drugbank-id'%in%drugs & interactions$'parent_key'%in%drugs),]
+  interactions=as.data.frame(data$'drug_interactions')
+  drugInteractions=interactions[which(interactions$'drugbank_id'%in%drugs | interactions$'target_drugbank_id'%in%drugs),]
   return(drugInteractions)
 }
 
@@ -93,7 +92,7 @@ getDBDrugInteractions<-function(data,drug){
 addDBLayer<-function(g,data,drugList){
   dbmully=addLayer(g,"drugs")
   drugs=getDBDrug(data,drugList)
-  interactions=getDBDrugInteractions(data,drugs$'primary_key')
+  interactions=getDBDrugInteractions(data,drugs$'drugbank_id')
   #Add Drugs' nodes
   message("Multipath: Adding Drugs Nodes")
   for (i in 1:dim(drugs)[1]) {
@@ -101,7 +100,7 @@ addDBLayer<-function(g,data,drugList){
     attrList=drugs[i,]
     attr=as.list(attrList)
     names(attr)=names(drugs)
-    dbmully=mully::addNode(dbmully,nodeName = drugs$'primary_key'[i],layerName = "drugs",attributes = attr[-1])
+    dbmully=mully::addNode(dbmully,nodeName = drugs$'drugbank_id'[i],layerName = "drugs",attributes = attr[-1])
   }
   
   message("Multipath: DONE - Drugs Nodes Added")
@@ -110,8 +109,8 @@ addDBLayer<-function(g,data,drugList){
   message("Multipath: Adding Drugs' Interactions")
   for (i in 1:dim(interactions)[1]) {
     progress(i,progress.bar = T)
-    startName=V(dbmully)[which(V(dbmully)$name == interactions$'drugbank-id'[i])]$name
-    endName=V(dbmully)[which(V(dbmully)$name == interactions$'parent_key'[i])]$name
+    startName=V(dbmully)[which(V(dbmully)$name == interactions$'target_drugbank_id'[i])]$name
+    endName=V(dbmully)[which(V(dbmully)$name == interactions$'drugbank_id'[i])]$name
     if(!is.null(startName) & !is.null(endName) & length(startName)!=0 & length(endName)!=0 )
       dbmully=mully::addEdge(dbmully,startName,endName,attributes = list(description=interactions$description[i]))
   }
@@ -127,23 +126,20 @@ addDBLayer<-function(g,data,drugList){
 #' @return A dataframe containing all information on the targets of the given drug list
 #' @export
 getDBTargets<-function(data,drugList){
-  drugs=getDBDrug(data,drugList)$'primary_key'
+  drugs=getDBDrug(data,drugList)$'drugbank_id'
   #Get Targets' list
-  allTargets=as.data.frame(data[["targets"]])
-  targets=allTargets[which(allTargets$'parent_key'%in%drugs),]
+  allTargets=dbparser:::targets()
+  targets=allTargets[which(allTargets$'drugbank_id'%in%drugs),]
   
   #Get Targets' infos
   polypeptides=as.data.frame(data[["targets_polypeptides"]])
-  infos=polypeptides[which(polypeptides$'parent_id'%in%targets$id),]
+  infos=polypeptides[which(polypeptides$'target_id'%in%targets$'target_id'),]
 
   #Join the dataframes
-  result=merge.data.frame(targets,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
+  result=merge.data.frame(targets,infos)
   
   #Rename columns
-  colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
-  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
-  colnames(result)[which(colnames(result)=="name")]<-"name"
+  colnames(result)[which(colnames(result)=="drugbank_id")]<-"dbid"
   return(result)
 }
 
@@ -156,23 +152,20 @@ getDBTargets<-function(data,drugList){
 #' @export
 #'
 getDBEnzymes<-function(data,drugList){
-  drugs=getDBDrug(data,drugList)$'primary_key'
+  drugs=getDBDrug(data,drugList)$'drugbank_id'
   #Get Enzymes' list
-  allEnzymes=as.data.frame(data[["enzymes"]])
-  enzymes=allEnzymes[which(allEnzymes$'parent_key'%in%drugs),]
+  allEnzymes=dbparser:::enzymes()
+  enzymes=allEnzymes[which(allEnzymes$'drugbank_id'%in%drugs),]
   
   #Get Targets' infos
-  polypeptides=as.data.frame(data[["enzymes_polypeptides"]])
-  infos=polypeptides[which(polypeptides$'parent_id'%in%enzymes$id),]
+  polypeptides=dbparser:::enzymes_polypeptides()
+  infos=polypeptides[which(polypeptides$'enzyme_id'%in%enzymes$'enzyme_id'),]
 
   #Join the dataframes
-  result=merge.data.frame(enzymes,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
+  result=merge.data.frame(enzymes,infos)
   
   #Rename columns
-  colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
-  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
-  colnames(result)[which(colnames(result)=="name")]<-"name"
+  colnames(result)[which(colnames(result)=="drugbank_id")]<-"dbid"
   return(result)
 }
 
@@ -186,23 +179,20 @@ getDBEnzymes<-function(data,drugList){
 #' @export
 #'
 getDBTransporters<-function(data,drugList){
-  drugs=getDBDrug(data,drugList)$'primary_key'
+  drugs=getDBDrug(data,drugList)$'drugbank_id'
   #Get Transporters' list
-  allTransporters=as.data.frame(data[["transporters"]])
-  transporters=allTransporters[which(allTransporters$'parent_key'%in%drugs),]
+  allTransporters=dbparser:::transporters()
+  transporters=allTransporters[which(allTransporters$'drugbank_id'%in%drugs),]
   
   #Get Transporters' infos
-  polypeptides=as.data.frame(data[["transporters_polypeptides"]])
-  infos=polypeptides[which(polypeptides$'parent_id'%in%transporters$id),]
+  polypeptides=dbparser:::transporters_polypeptides()
+  infos=polypeptides[which(polypeptides$'transporter_id'%in%transporters$'transporter_id'),]
   
   #Join the dataframes
-  result=merge.data.frame(transporters,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
+  result=merge.data.frame(transporters,infos)
   
   #Rename columns
-  colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
-  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
-  colnames(result)[which(colnames(result)=="name")]<-"name"
+  colnames(result)[which(colnames(result)=="drugbank_id")]<-"dbid"
   return(result)
 }
 
@@ -215,22 +205,19 @@ getDBTransporters<-function(data,drugList){
 #' @export
 #'
 getDBCarriers<-function(data,drugList){
-  drugs=getDBDrug(data,drugList)$'primary_key'
+  drugs=getDBDrug(data,drugList)$'drugbank_id'
   #Get Carriers' list
-  allCarriers=as.data.frame(data[["carriers"]])
-  carriers=allCarriers[which(allCarriers$'parent_key'%in%drugs),]
+  allCarriers=dbparser:::carriers()
+  carriers=allCarriers[which(allCarriers$'drugbank_id'%in%drugs),]
   
   #Get Carriers' infos
-  polypeptides=as.data.frame(data[["carriers_polypeptides"]])
-  infos=polypeptides[which(polypeptides$'parent_id'%in%carriers$id),]
+  polypeptides=dbparser:::carriers_polypeptides()
+  infos=polypeptides[which(polypeptides$'carrier_id'%in%carriers$'carrier_id'),]
 
   #Join the dataframes
-  result=merge.data.frame(carriers,infos,by.x=c("id","name","organism"),by.y=c("parent_id","name","organism"))
+  result=merge.data.frame(carriers,infos)
   
   #Rename columns
-  colnames(result)[which(colnames(result)=="parent_key")]<-"dbid"
-  colnames(result)[which(colnames(result)=="id.y")]<-"upid"
-  colnames(result)[which(colnames(result)=="id")]<-"dbproteinid"
-  colnames(result)[which(colnames(result)=="name")]<-"name"
+  colnames(result)[which(colnames(result)=="drugbank_id")]<-"dbid"
   return(result)
 }
