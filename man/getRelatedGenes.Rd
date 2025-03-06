@@ -18,8 +18,9 @@ List of Protein
 Get proteins that has a reference to KEGG Genes from a mully graph and a biopax
 }
 \examples{
-
-proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
-geneList=c("hsa:122706","hsa:4221","hsa:8312")
+downloadPathway("R-HSA-195721",biopax=3) 
+biopax=readBiopax("R-HSA-195721.owl") 
+pathwayID=listPathways(biopax)$id[1] 
+g=pathway2Mully (biopax, pathwayID) 
 relatedGenes = getRelatedGenes(g,biopax)
 }

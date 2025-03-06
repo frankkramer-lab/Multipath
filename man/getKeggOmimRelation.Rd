@@ -21,11 +21,13 @@ Gets the genes and diseases that are referenced to each other. Genes are extract
 must be preceded by addGenesLayer(g,biopax) function
 }
 \examples{
+\dontrun{ 
 biopax=readBiopax("wnt.owl")
 pathwayID=listPathways(biopax)$id[1]
 g=Multipath::pathway2Mully(biopax,pathwayID)
 g=addGenesLayer(g,biopax)
 dataframe = getKeggOmimRelation(g,biopax)
+}
 }
 \author{
 Mohammad Al Maaz

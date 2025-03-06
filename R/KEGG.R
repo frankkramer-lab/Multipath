@@ -2,17 +2,23 @@
 #' Get Kegg gene
 #'
 #' @param geneList  List of Genes as formatted in KEGG Genes
+#' @param parallelProcessing  A boolean specifying whether to use parallel request or not. By default true.
+#' @param geneList  chunkSize Size of each chunk (default: 100)
 #'
 #' @return A data frame of kegg data
+#' @importFrom future plan
 #' @export
-#' @author Mohammad Al Maaz
 #' @examples
 #' geneList=c("hsa:122706","hsa:4221","hsa:8312")
 #' genes=  getKeggGene(geneList)
-getKeggGene <- function(geneList) {
+getKeggGene <- function(geneList, parallelProcessing=TRUE, chunkSize=100) {
+  future::plan(multisession)
   if (missing(geneList) || is.null(geneList)) {
-    stop("Invalid Arguments")
+    stop("Invalid Arguments: geneList is required")
   }
+  if(parallelProcessing)
+    return(getKeggGeneParallel(geneList,chunkSize))
+  
   df_keggGetInput = data.frame(
     entry = is.character(c()),
     organism = is.character(c()),
@@ -29,7 +35,7 @@ getKeggGene <- function(geneList) {
     if (indexEnd > length(geneList))
       indexEnd = length(geneList)
     list_Get =  c(geneList[i:indexEnd])
-    list_keggGet = KEGGREST::keggGet(c(geneList[i:indexEnd]))
+    list_keggGet = KEGGREST::keggGet(list_Get)
     genes = transformKeggData(list_keggGet, list_Get)
     df_keggGetInput = merge.data.frame(
       x = df_keggGetInput,
@@ -40,6 +46,43 @@ getKeggGene <- function(geneList) {
     i = indexEnd + 1
     h = h + 1
   }
+  return(df_keggGetInput)
+}
+
+#' Parallel retrieval of KEGG entries
+#'
+#' @param geneList  List of Genes as formatted in KEGG Genes
+#' @param chunkSize Size of each chunk (default: 100)
+#'
+#' @return A data frame of KEGG data
+#' @author Mohammad Al Maaz
+#' @examples
+#' geneList = c("hsa:122706", "hsa:4221", "hsa:8312")
+#' genes = getKeggGeneParallel(geneList)
+getKeggGeneParallel <- function(geneList, chunkSize = 100){
+  # Check for valid input
+  if(missing(geneList)){
+    stop("Invalid Arguments: geneList is required.")
+  }
+  # Enable parallel processing
+  future::plan(multisession)
+  
+  # Split geneList into chunks
+  chunks <- split(geneList, ceiling(seq_along(geneList) / chunkSize))
+  # Process each chunk in parallel
+  results <- future.apply::future_lapply(chunks, function(chunk) {
+    tryCatch({
+      # Query KEGG for the chunk
+      kegg_data <- KEGGREST::keggGet(chunk)
+      # Transform the data into a data frame
+      transformKeggData(kegg_data, chunk)
+    }, error = function(e) {
+      warning("Error processing chunk: ", e$message)
+      return(NULL)
+    })
+  })
+  # Combine results into a single data frame
+  df_keggGetInput <- do.call(rbind, results)
   return(df_keggGetInput)
 }
 
@@ -82,6 +125,7 @@ transformKeggData <- function(list_keggGet, list_Get) {
       all.y = TRUE
     )
   }
+  rownames(df_keggGet) <- 1:nrow(df_keggGet)
   return(df_keggGet)
 }
 
@@ -196,10 +240,12 @@ simplifyInteractionKegg <- function(genes) {
 #' @export
 #' @author Mohammad Al Maaz
 #' @examples
+#' \dontrun{ 
 #' biopax=readBiopax("wnt.owl") #This is a mully graph that contains a protein layer
 #' pathwayID=listPathways(biopax)$id[1]
 #' g=Multipath::pathway2Mully(biopax,pathwayID)
 #' g=addGenesLayer(g,biopax)
+#' }
 addGenesLayer <- function(g, biopax) {
   g = addLayer(g, "KEGGGenes")
   data = getKeggUpkbRelations(g, biopax)
@@ -288,9 +334,10 @@ addGenesLayer <- function(g, biopax) {
 #' @export
 #'
 #' @examples
-#'
-#' proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
-#' geneList=c("hsa:122706","hsa:4221","hsa:8312")
+#' downloadPathway("R-HSA-195721",biopax=3) 
+#' biopax=readBiopax("R-HSA-195721.owl") 
+#' pathwayID=listPathways(biopax)$id[1] 
+#' g=pathway2Mully (biopax, pathwayID) 
 #' relatedGenes = getRelatedGenes(g,biopax)
 getRelatedGenes <- function (g, biopax) {
   allextIDs = getExternalIDs(biopax, getLayer(g, "protein")$name)
