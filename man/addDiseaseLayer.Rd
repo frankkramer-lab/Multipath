@@ -21,11 +21,13 @@ Add OMIM Layer with its respective Nodes
 should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
 }
 \examples{
+\dontrun{ 
 biopax=readBiopax("wnt.owl") #This is a mully graph that contains a protein layer
 pathwayID=listPathways(biopax)$id[1]
 g=Multipath::pathway2Mully(biopax,pathwayID)
 g=addGenesLayer(g,biopax)
 g=addDiseaseLayer(g,biopax)
+}
 }
 \author{
 Mohammad Al Maaz

@@ -4,10 +4,10 @@
 \alias{getKeggGene}
 \title{Get Kegg gene}
 \usage{
-getKeggGene(geneList)
+getKeggGene(geneList, chunkSize = 10)
 }
 \arguments{
-\item{geneList}{List of Genes as formatted in KEGG Genes}
+\item{geneList}{chunkSize Size of each chunk (default: 10)}
 }
 \value{
 A data frame of kegg data
@@ -18,7 +18,4 @@ Get Kegg gene
 \examples{
 geneList=c("hsa:122706","hsa:4221","hsa:8312")
 genes=  getKeggGene(geneList)
-}
-\author{
-Mohammad Al Maaz
 }

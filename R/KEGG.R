@@ -2,8 +2,7 @@
 #' Get Kegg gene
 #'
 #' @param geneList  List of Genes as formatted in KEGG Genes
-#' @param parallelProcessing  A boolean specifying whether to use parallel request or not. By default true.
-#' @param geneList  chunkSize Size of each chunk (default: 100)
+#' @param geneList  chunkSize Size of each chunk (default: 10)
 #'
 #' @return A data frame of kegg data
 #' @importFrom future plan
@@ -11,14 +10,12 @@
 #' @examples
 #' geneList=c("hsa:122706","hsa:4221","hsa:8312")
 #' genes=  getKeggGene(geneList)
-getKeggGene <- function(geneList, parallelProcessing=TRUE, chunkSize=100) {
+getKeggGene <- function(geneList, chunkSize=10) {
   future::plan(multisession)
   if (missing(geneList) || is.null(geneList)) {
     stop("Invalid Arguments: geneList is required")
   }
-  if(parallelProcessing)
-    return(getKeggGeneParallel(geneList,chunkSize))
-  
+  #Create Result Dataframe
   df_keggGetInput = data.frame(
     entry = is.character(c()),
     organism = is.character(c()),
@@ -26,44 +23,6 @@ getKeggGene <- function(geneList, parallelProcessing=TRUE, chunkSize=100) {
     idLinks = is.character(c()),
     stringsAsFactors = FALSE
   )[-1, ]
-  h = 1
-  i = 1
-  while (i <= length(geneList)) {
-    #Set of 10 elements
-    indexEnd = h * 10
-    #Check if out of bound
-    if (indexEnd > length(geneList))
-      indexEnd = length(geneList)
-    list_Get =  c(geneList[i:indexEnd])
-    list_keggGet = KEGGREST::keggGet(list_Get)
-    genes = transformKeggData(list_keggGet, list_Get)
-    df_keggGetInput = merge.data.frame(
-      x = df_keggGetInput,
-      y = genes,
-      all.x = TRUE,
-      all.y = TRUE
-    )
-    i = indexEnd + 1
-    h = h + 1
-  }
-  return(df_keggGetInput)
-}
-
-#' Parallel retrieval of KEGG entries
-#'
-#' @param geneList  List of Genes as formatted in KEGG Genes
-#' @param chunkSize Size of each chunk (default: 100)
-#'
-#' @return A data frame of KEGG data
-#' @author Mohammad Al Maaz
-#' @examples
-#' geneList = c("hsa:122706", "hsa:4221", "hsa:8312")
-#' genes = getKeggGeneParallel(geneList)
-getKeggGeneParallel <- function(geneList, chunkSize = 100){
-  # Check for valid input
-  if(missing(geneList)){
-    stop("Invalid Arguments: geneList is required.")
-  }
   # Enable parallel processing
   future::plan(multisession)
   
@@ -77,13 +36,49 @@ getKeggGeneParallel <- function(geneList, chunkSize = 100){
       # Transform the data into a data frame
       transformKeggData(kegg_data, chunk)
     }, error = function(e) {
-      warning("Error processing chunk: ", e$message)
+      warning(e$message,"The list contains invalid codes, this batch will be dismissed:\n", list_Get)
       return(NULL)
     })
   })
   # Combine results into a single data frame
   df_keggGetInput <- do.call(rbind, results)
   return(df_keggGetInput)
+}
+
+# Function to check KEGG gene code
+#' Check KEGG Gene Code Validity
+#'
+#' @param gene_code A KEGG Gene ID
+#'
+#' @returns boolean True if exists, false if not
+#' 
+#' @author Zaynab Hammoud
+#' @examples
+#' is_valid_kegg_gene("hsa:108")
+is_valid_kegg_gene <- function(gene_code) {
+  tryCatch({
+    KEGGREST::keggGet(gene_code)
+    TRUE  # Code is valid
+  }, error = function(e) {
+    FALSE  # Code is invalid
+  })
+}
+
+#' Remove invalid Gene IDs from a gene list
+#'
+#' @param geneList A list of given KEGG Gene IDs
+#'
+#' @returns geneList A list of filtered valid gene IDs
+#' @export
+#' @author Zaynab Hammoud
+#'
+#' @examples
+#' geneList=c("hsa:10458", "hsa:108", "hsa:111", "hsa:112", "hsa:113", "hsa:114")
+#' filteredGeneList=filterGeneList(geneList)
+filterGeneList<- function(geneList) {
+ validitycheck=sapply(geneList,is_valid_kegg_gene)
+ geneList=geneList[-which(validitycheck==FALSE)]
+ return(geneList)
 }
 
 #' Transform data retrieved from KEGG

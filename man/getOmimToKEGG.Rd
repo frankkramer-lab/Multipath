@@ -19,9 +19,11 @@ Get Omim to KEGG Genes relations from OMIM
 should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
 }
 \examples{
+\dontrun{ 
 library(romim)
 romim::set_key('KEY')
 kEGG2OMIM = getOmimToKEGG(c("611137", "613733", "603816"))
+}
 }
 \author{
 Mohammad Al Maaz

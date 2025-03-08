@@ -170,7 +170,6 @@ getUPKBtoKEGG <- function(up, proteinList, geneList) {
 #'
 #' @return Dataframe of the Genes-Proteins relation
 #' @export
-#' @importFrom dplyr select
 #' @author Mohammad Al Maaz
 #' @examples
 #' geneList=c("hsa:122706","hsa:4221","hsa:8312")
@@ -206,9 +205,9 @@ getKEGGtoOMIM <- function(geneList) {
   genesKegg = getKeggGene(geneList)
   genesKegg = interactionKegg(genesKegg)
   genesKegg = simplifyInteractionKegg(genesKegg)
-  genes = dplyr::filter(genesKegg, dbName == "OMIM")
+  genes1 = genesKegg[which(genesKegg$dbName=="OMIM"),]
   genesToOmim =
-    dplyr::select(genes, c("keggEntry", "dbId", "source"))
+    dplyr::select(genes1, c("keggEntry", "dbId", "source"))
   return(genesToOmim)
   
 }
@@ -222,12 +221,14 @@ getKEGGtoOMIM <- function(geneList) {
 #' @export
 #' @author Mohammad Al Maaz
 #' @examples
+#' \dontrun{ 
 #' up = UniProt.ws()
 #' biopax=readBiopax("wnt.owl") 
 #' pathwayID=listPathways(biopax)$id[1]
 #' g=Multipath::pathway2Mully(biopax,pathwayID) #This is a mully graph that contains a protein layer
 #' g=addGenesLayer(g,biopax)
 #' UPKB2KEGG = getUPKBtoKEGG(g, biopax)
+#' }
 getKeggUpkbRelations <- function(g, biopax) {
   upkbtokeggDf = getRelatedGenes(g, biopax)
   geneList = upkbtokeggDf$keggid
@@ -249,10 +250,12 @@ getKeggUpkbRelations <- function(g, biopax) {
 #' @export
 #'
 #' @note  should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
-#' @examples  
+#' @examples
+#' \dontrun{   
 #' library(romim)
 #' romim::set_key('KEY')
 #' OmimToUPKB = getOmimToUPKB(c("611137", "613733", "603816"))
+#' }
 getOmimToUPKB <- function(omimIds) {
   df_omim = data.frame(
     OMIM = c(),
@@ -299,9 +302,11 @@ getOmimToUPKB <- function(omimIds) {
 #' @author Mohammad Al Maaz
 #'
 #' @examples 
+#' \dontrun{ 
 #' library(romim)
 #' romim::set_key('KEY')
 #' kEGG2OMIM = getOmimToKEGG(c("611137", "613733", "603816"))
+#' }
 getOmimToKEGG <- function(omimIds) {
   df_omim = data.frame(
     OMIM = c(),
@@ -339,11 +344,13 @@ getOmimToKEGG <- function(omimIds) {
 #' @note must be preceded by addGenesLayer(g,biopax) function
 #' @author Mohammad Al Maaz
 #' @examples
+#' \dontrun{ 
 #' biopax=readBiopax("wnt.owl")
 #' pathwayID=listPathways(biopax)$id[1]
 #' g=Multipath::pathway2Mully(biopax,pathwayID)
 #' g=addGenesLayer(g,biopax)
 #' dataframe = getKeggOmimRelation(g,biopax)
+#' }
 getKeggOmimRelation <- function(g, biopax) {
   gene_list = getLayer(g, "KEGGGenes")$id
   gene_internalid = getLayer(g, "KEGGGenes")$name
@@ -353,6 +360,7 @@ getKeggOmimRelation <- function(g, biopax) {
   df_gene_internalid = df_gene_internalid[which(keggToOmim$keggEntry  %in%  df_gene_internalid$KeggEntry), ]$gene_internalid
   keggToOmim = cbind(keggToOmim, df_gene_internalid)
   names(keggToOmim) = c("KEGGID", "OMIM", "source", "geneInternalId")
+  View(keggToOmim)
   getOmimToKEGG = getOmimToKEGG(keggToOmim$OMIM)
   relations = merge.data.frame(keggToOmim,
                                getOmimToKEGG,

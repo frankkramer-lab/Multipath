@@ -10,11 +10,13 @@
 #' @note  should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
 #' @author Mohammad Al Maaz
 #' @examples
+#' \dontrun{ 
 #' biopax=readBiopax("wnt.owl") #This is a mully graph that contains a protein layer
 #' pathwayID=listPathways(biopax)$id[1]
 #' g=Multipath::pathway2Mully(biopax,pathwayID)
 #' g=addGenesLayer(g,biopax)
 #' g=addDiseaseLayer(g,biopax)
+#' }
 addDiseaseLayer <- function(g, biopax, addGenesLayer = FALSE) {
   if (!isLayer(g, "OMIM"))
     g = addLayer(g, "OMIM")
@@ -154,10 +156,12 @@ addDiseaseLayer <- function(g, biopax, addGenesLayer = FALSE) {
 #' @note  should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
 #' @author Mohammad Al Maaz
 #' @examples
+#' \dontrun{ 
 #' biopax=readBiopax("wnt.owl") 
 #' pathwayID=listPathways(biopax)$id[1]
 #' g=Multipath::pathway2Mully(biopax,pathwayID) #This is a mully graph that contains a protein layer
 #' getUPKBRelatedDiseases(g,biopax)
+#' }
 getUPKBRelatedDiseases <- function (g, biopax) {
   allextIDs = getExternalIDs(biopax, getLayer(g, "protein")$name)
   extIDs = unique(allextIDs[which(allextIDs$database == "UniProt"),]$extid)

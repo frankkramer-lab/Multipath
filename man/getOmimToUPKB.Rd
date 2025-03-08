@@ -19,8 +19,9 @@ Get Omim to UPKB relations from OMIM
 should be preceded by calling  romim::set_key('KEY'). The KEY could be requested via omim's official website.
 }
 \examples{
- 
+\dontrun{   
 library(romim)
 romim::set_key('KEY')
 OmimToUPKB = getOmimToUPKB(c("611137", "613733", "603816"))
+}
 }

@@ -18,10 +18,12 @@ A Mully graph with the all layers,nodes and edges
 Add KEGG Gene Layer with its respective Nodes
 }
 \examples{
+\dontrun{ 
 biopax=readBiopax("wnt.owl") #This is a mully graph that contains a protein layer
 pathwayID=listPathways(biopax)$id[1]
 g=Multipath::pathway2Mully(biopax,pathwayID)
 g=addGenesLayer(g,biopax)
+}
 }
 \author{
 Mohammad Al Maaz
