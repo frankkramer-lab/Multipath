@@ -31,7 +31,7 @@ The package is implemented as a part of the Multipath Project directed by Dr. Fr
 ### Preinstallation
 
 Multipath depends on multiple packages.
-The packages are the following: [UniProt.ws](https://www.bioconductor.org/packages/release/bioc/html/UniProt.ws.html), [dbparser](https://cran.r-project.org/web/packages/dbparser/index.html), [rBiopaxParser](https://github.com/frankkramer-lab/rBiopaxParser), [mully](https://github.com/frankkramer-lab/mully), [TCGAretriever](https://cran.r-project.org/web/packages/TCGAretriever/index.html), [stringr](https://cran.r-project.org/web/packages/stringr/), [svMisc](https://cran.r-project.org/web/packages/svMisc/), [uuid](https://cran.r-project.org/web/packages/uuid/), [dplyr](https://cran.r-project.org/web/packages/dplyr/), [crayon](https://cran.r-project.org/web/packages/crayon/) Please make sure to install the packages [UniProt.ws](https://www.bioconductor.org/packages/release/bioc/html/UniProt.ws.html),[rBiopaxParser](https://github.com/frankkramer-lab/rBiopaxParser), [mully](https://github.com/frankkramer-lab/mully) before using the package,
+The packages are the following: [queryup](https://cran.r-project.org/web/packages/queryup/index.html), [dbparser](https://cran.r-project.org/web/packages/dbparser/index.html), [rBiopaxParser](https://github.com/frankkramer-lab/rBiopaxParser), [mully](https://github.com/frankkramer-lab/mully), [TCGAretriever](https://cran.r-project.org/web/packages/TCGAretriever/index.html), [stringr](https://cran.r-project.org/web/packages/stringr/), [svMisc](https://cran.r-project.org/web/packages/svMisc/), [uuid](https://cran.r-project.org/web/packages/uuid/), [dplyr](https://cran.r-project.org/web/packages/dplyr/), [crayon](https://cran.r-project.org/web/packages/crayon/) Please make sure to install the packages [UniProt.ws](https://www.bioconductor.org/packages/release/bioc/html/UniProt.ws.html),[rBiopaxParser](https://github.com/frankkramer-lab/rBiopaxParser), [mully](https://github.com/frankkramer-lab/mully) before using the package,
 [future](https://cran.r-project.org/web/packages/future/index.html),
 [future.apply](https://cran.r-project.org/web/packages/future.apply/index.html).
 
@@ -163,16 +163,13 @@ view=addStep(view,"remove","layer","disease")
 **Add a protein layer to a mully graph**
 
 This function is used to add a UniProt protein layer to an existing mully model.
-The function needs the following arguments: - **g** - The mully graph - **up** - The UniProt.ws Object - **proteinList** - The list of UniProt Ids of the proteins to be added - **col** - The list of attributes associated to the UniProtKB Entries to be retrieved
-
-The function returns the mully graph with the added UniProt layer The function should be preceded by `UniProt.ws()` to get the UniProt.ws Object
+The function needs the following arguments: - **g** - The mully graph - **proteinList** - The list of UniProt Ids of the proteins to be added - **col** - The list of attributes associated to the UniProtKB Entries to be retrieved
 
 ***Example***
 
 ```{r, eval=FALSE}
-up=UniProt.ws()
 g=mully("UniProt")
-g=addUPKBLayer(g,up,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
+g=addUPKBLayer(g,proteinList=c("P02747","P00734","P07204"),col=c("UNIPROTKB","PROTEIN-NAMES"))
 ```
 
 ## downloadPathway
@@ -193,24 +190,6 @@ The function returns the path to the directory in which the files are downloaded
 
 ```{r, eval=FALSE}
 downloadPathway(c("R-HSA-195721","R-HSA-9609507"),biopaxLevel=3,overwrite=T)
-```
-
-## getAllUPKB
-
-**Get all proteins' entries from UniProt**
-
-The function is used to fetch all protein entries from UniProt.
-The function needs the following arguments: - **up** - The UniProt.ws Object
-
-The function returns a dataframe containing the Protein's entries with the ID and Name.
-
-Should be preceded by `UniProt.ws()` to get the UniProt.ws Object
-
-***Example***
-
-```{r, eval=FALSE}
-up=UniProt.ws()
-allProteins=getAllUPKB(up)
 ```
 
 ## getDBCarriers
@@ -521,22 +500,19 @@ The function is used to obtain drug targets from UniProt and DrugBank.
 It combines the returned relations from both functions `getDBtoUPKB` and `getUPKBtoDB`.
 The function needs the following arguments:
 
--   **up** - The UniProt.ws Object
 -   **data** - The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function `loadDBXML(DrugBankFile)` -**proteinList** - The list of UniProt Ids of the proteins
 -   **drugList** - The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
 
 The function returns a dataframe containing the connections between DrugBank drugs and UniProt proteins retrieved from DrugBank and UniProt.
 The function should be preceded by:
 
-1.  `UniProt.ws()` to get the UniProt.ws Object
-2.  `loadDBXML(DrugBankFile)` to get the argument data
+`loadDBXML(DrugBankFile)` to get the argument data
 
 ***Example***
 
 ```{r, eval=FALSE}
-up=UniProt.ws()
 data=loadDBXML(DrugBankFilePath)
-relations=getUPKBDBRelations(up,data,proteinList=c("P02747","P07204"),drugList=c("DB00001","DB00006"))
+relations=getUPKBDBRelations(data,proteinList=c("P02747","P07204"),drugList=c("DB00001","DB00006"))
 ```
 
 ## getUPKBInfo
@@ -553,8 +529,7 @@ The function should be preceded by `UniProt.ws()` to get the UniProt.ws Object.
 ***Example***
 
 ```{r, eval=FALSE}
-up <- UniProt.ws()
-getUPKBInfo(up,c("Q6ZS62","P14384","P40259"),c("PROTEIN-NAMES","DRUGBANK","GO","REACTOME"))
+getUPKBInfo(c("Q6ZS62","P14384","P40259"),c("protein_name","xref_drugbank","go","xref_reactome"))
 ```
 
 ## getUPKBInteractions
@@ -564,17 +539,14 @@ getUPKBInfo(up,c("Q6ZS62","P14384","P40259"),c("PROTEIN-NAMES","DRUGBANK","GO","
 The function is used to fetch interactions between proteins from the UniProt Database.
 The function needs the following arguments:
 
--   **up** - The UniProt.ws Object
 -   **proteins** - The list of proteins of which the interactions should be retrieved
 
 The function returns a dataframe containing the interactions between the given proteins.
-The function should be preceded by `UniProt.ws()` to get the UniProt.ws Object.
 
 ***Example***
 
 ```{r, eval=FALSE}
-up=UniProt.ws()
-interactions=getUPKBInteractions(up,c("P02747","P07204","P00734"))
+interactions=getUPKBInteractions(c("P02747","P07204","P00734"))
 ```
 
 ## getUPKBtoKEGG
@@ -584,20 +556,16 @@ interactions=getUPKBInteractions(up,c("P02747","P07204","P00734"))
 The function is used to fetch information on a list of protein entries from UniProt.It returns a dataframe showing the protein and its respective KEGG id if it could be located as a cross reference.
 The function needs the following arguments: 
 
-- **up** - The UniProt.ws Object 
 - **proteinList** - The list of UniProtKB Proteins ID to be retrieved 
 - **geneList** - This is an optional argument. It can be used to show the proteins that only has cross reference to any element in the gene list. If not provided, a dataframe with all fetched information about the protein along with their cross reference being KEGG is returned.
 
 
-The function should be preceded by `UniProt.ws()` to get the UniProt.ws Object.
-
 ***Example***
 
 ```{r, eval=FALSE}
-up = UniProt.ws()
 proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
 geneList=c("hsa:122706","hsa:4221","hsa:8312")
-getUPKBtoKEGG(up,geneList,proteinList)
+getUPKBtoKEGG(geneList,proteinList)
 ```
 
 ## getUPKBRelatedDiseases
@@ -625,18 +593,15 @@ g=getUPKBRelatedDiseases(g,biopax)
 This function is used to fetch relations between a list of proteins and a list of drugs from the UniProt Database.
 The function needs the following arguments:
 
--   **up** - The UniProt.ws Object
 -   **proteinList** - The list of UniProt Ids of the proteins
 -   **drugList** - The ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).
 
 The function returns a dataframe containing the connections between UniProt proteins and DrugBank drugs retrieved from UniProt.
-The function should be preceded by `UniProt.ws()` to get the UniProt.ws Object.
 
 ***Example***
 
 ```{r, eval=FALSE}
-up=UniProt.ws()
-getUPKBtoDB(up,c("P02747","P00734","P07204"),c("DB00001","DB00002"))
+getUPKBtoDB(c("P02747","P00734","P07204"),c("DB00001","DB00002"))
 ```
 
 ## interactionKegg
@@ -686,7 +651,6 @@ The function creates a multilayered graph with a drug and protein layer, and add
 The function needs the following arguments:
 
 -   **name** - The name of the graph to be generated
--   **up** - The `Uniprot.ws()` object
 -   **proteinList** - The list of proteins of which the interactions should be retrieved
 -   **data** - The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function `loadDBXML(DrugBankFile)`
 -   **drugList** - The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
@@ -694,15 +658,13 @@ The function needs the following arguments:
 The function returns a mully graph with the added data.
 The function should be preceded by:
 
-1.  `UniProt.ws()` to get the UniProt.ws Object
-2.  `loadDBXML(DrugBankFile)` to get the argument data
+`loadDBXML(DrugBankFile)` to get the argument data
 
 ***Example***
 
 ```{r, eval=FALSE}
-up=UniProt.ws()
 data=loadDBXML(DrugBankFilePath)
-g=multipath(up=up,proteinList=c("P02747","P05164"),data=data,drugList=c("DB00001","DB00006"))
+g=multipath(proteinList=c("P02747","P05164"),data=data,drugList=c("DB00001","DB00006"))
 ```
 
 ## pathway2Mully
