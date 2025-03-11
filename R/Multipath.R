@@ -1,7 +1,6 @@
 #' Generate Multipath Graph from General Data
 #'
 #' @param name The name of the graph to be generated
-#' @param up The Uniprot.ws() object
 #' @param proteinList The list of proteins of which the interactions should be retrieved
 #' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
 #' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
@@ -10,7 +9,7 @@
 #' @export
 #' @import mully
 #' @importFrom igraph V
-multipath<-function(name="Multipath",up=NA,proteinList=NA,data=NA,drugList=NA){
+multipath<-function(name="Multipath",proteinList=NA,data=NA,drugList=NA){
   g=mully(name,direct=T)
   proteinLayer=F
   drugLayer=F
@@ -22,12 +21,12 @@ multipath<-function(name="Multipath",up=NA,proteinList=NA,data=NA,drugList=NA){
   }
   if(!is.na(proteinList) & !is.na(up)){
     message("Multipath: Protein List will be added")
-    g=addUPKBLayer(g,up,proteinList)
+    g=addUPKBLayer(g,proteinList)
     proteinLayer=T
   }
   #Add Drug-Protein Relations
   if(drugLayer & proteinLayer){
-    updbrelations=getUPKBDBRelations(up,data,proteinList,drugList)
+    updbrelations=getUPKBDBRelations(data,proteinList,drugList)
     message("Multipath: Adding DrugBank UniProt Edges")
     for (i in 1:dim(updbrelations)[1]) {
       progress(i,progress.bar = T)

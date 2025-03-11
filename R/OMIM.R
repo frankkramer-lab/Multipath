@@ -165,7 +165,7 @@ addDiseaseLayer <- function(g, biopax, addGenesLayer = FALSE) {
 getUPKBRelatedDiseases <- function (g, biopax) {
   allextIDs = getExternalIDs(biopax, getLayer(g, "protein")$name)
   extIDs = unique(allextIDs[which(allextIDs$database == "UniProt"),]$extid)
-  omimfupkb = getUPKBInfo(UniProt.ws::UniProt.ws(), extIDs, col = "xref_mim")
+  omimfupkb = getUPKBInfo(extIDs, col = "xref_mim")
   names(omimfupkb) = c("extid", "omimid")
   df_omimfupkb = data.frame(extid = c(),
                             omimid = c())

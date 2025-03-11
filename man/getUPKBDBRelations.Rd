@@ -4,11 +4,9 @@
 \alias{getUPKBDBRelations}
 \title{Get Protein and Drugs relations from UniProt and DrugBank}
 \usage{
-getUPKBDBRelations(up, data, proteinList, drugList)
+getUPKBDBRelations(data, proteinList, drugList)
 }
 \arguments{
-\item{up}{The UniProt.ws Object}
-
 \item{data}{The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)}
 
 \item{proteinList}{The list of UniProt Ids of the proteins}
@@ -23,13 +21,11 @@ Get Protein and Drugs relations from UniProt and DrugBank
 }
 \note{
 Should be preceded by:
-1. UniProt.ws() to get the UniProt.ws Object
-2. loadDBXML(DrugBankFile) to get the argument data
+loadDBXML(DrugBankFile) to get the argument data
 }
 \examples{
 \dontrun{
-up=UniProt.ws() 
 data=readDBXML(DBXMLFilePath)
-relations=getUPKBDBRelations(up,data,c("P02747","P05164"),c("DB00001","DB00006"))
+relations=getUPKBDBRelations(data,c("P02747","P05164"),c("DB00001","DB00006"))
 }
 }

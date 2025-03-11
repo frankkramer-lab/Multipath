@@ -27,7 +27,7 @@ Multipath paper:
 ### Preinstallation
 
 Multipath depends on multiple packages. The packages are the following:
-[UniProt.ws](https://www.bioconductor.org/packages/release/bioc/html/UniProt.ws.html),
+[queryup](https://cran.r-project.org/web/packages/queryup/index.html),
 [dbparser](https://cran.r-project.org/web/packages/dbparser/index.html),
 [rBiopaxParser](https://github.com/frankkramer-lab/rBiopaxParser),
 [mully](https://github.com/frankkramer-lab/mully),
@@ -44,17 +44,6 @@ sure to install the packages
 [rBiopaxParser](https://github.com/frankkramer-lab/rBiopaxParser) and
 [mully](https://github.com/frankkramer-lab/mully) before using the
 package.
-
-To install the
-[UniProt.ws](https://www.bioconductor.org/packages/release/bioc/html/UniProt.ws.html)
-package:
-
-``` r
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install("UniProt.ws")
-```
 
 To install the [mully](https://github.com/frankkramer-lab/mully)
 package:
@@ -82,7 +71,7 @@ using the following script.
 
 ``` r
 #Install CRAN Dependencies
-install.packages(c("remotes","mully", "svMisc", "uuid", "dplyr", "crayon", "igraph", "RCurl", "XML", "xml2", "XML2R", "devtools"))
+install.packages(c("queryup","remotes","mully", "svMisc", "uuid", "dplyr", "crayon", "igraph", "RCurl", "XML", "xml2", "XML2R", "devtools"))
 
 #Install BioConductor and remotes Dependencies
 if (!require("BiocManager", quietly = TRUE))
@@ -90,7 +79,6 @@ if (!require("BiocManager", quietly = TRUE))
 
 BiocManager::install("KEGGREST",force = TRUE)
 BiocManager::install("KEGGgraph")
-BiocManager::install("UniProt.ws")
 BiocManager::install("graph")
 
 remotes::install_github('davetang/romim')
@@ -187,10 +175,10 @@ Function](https://github.com/frankkramer-lab/Multipath/blob/master/R/Multipath.R
 | `addDBLayer(g,data,drugList)` | Add a DrugBank Layer to a graph function |
 | `getDBtoUPKB(data,drugLiy,proteinList)` | Get Drug-Proteins relations from DrugBank function |
 | `getAllUPKB(up)` | Get all UniProt protein entries function |
-| `getUPKBInfo(up,proteins,col)` | Get UniProt protein entry infos function |
-| `getUPKBInteractions(up,proteins)` | Get Proteins interactions from UniProt function |
-| `getUPKBtoDB(up,proteinList,drugList)` | Get Proteins-Drug relations from UniProt function |
-| `addUPKBLayer(g,up,proteinList)` | Add a UniProt Layer to a graph function |
-| `getUPKBDBRelations(up,data,proteinList,drugList)` | Get Proteins-Drug relations from UniProt and DrugBank function |
-| `multipath(name,up,proteinList,data,drugList)` | Build integrated model function |
+| `getUPKBInfo(proteins,col)` | Get UniProt protein entry infos function |
+| `getUPKBInteractions(proteins)` | Get Proteins interactions from UniProt function |
+| `getUPKBtoDB(proteinList,drugList)` | Get Proteins-Drug relations from UniProt function |
+| `addUPKBLayer(g,proteinList)` | Add a UniProt Layer to a graph function |
+| `getUPKBDBRelations(data,proteinList,drugList)` | Get Proteins-Drug relations from UniProt and DrugBank function |
+| `multipath(name,proteinList,data,drugList)` | Build integrated model function |
 | `wntpathway(file)` | Track and undo demo function |

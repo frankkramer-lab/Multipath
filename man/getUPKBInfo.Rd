@@ -4,11 +4,9 @@
 \alias{getUPKBInfo}
 \title{Get Proteins from UniProtKB}
 \usage{
-getUPKBInfo(up, proteins, col)
+getUPKBInfo(proteins, col)
 }
 \arguments{
-\item{up}{The UniProt.ws Object}
-
 \item{proteins}{The list of UniProtKB Proteins ID to be retrieved}
 
 \item{col}{The list of attributes associated to the UniProtKB Entries to be retrieved}
@@ -20,12 +18,10 @@ a dataframe containing the protein entries with the selected attributes
 Get Proteins from UniProtKB
 }
 \note{
-Should be preceded by UniProt.ws() to get the UniProt.ws Object
-To get the list of possible columns, you can call columns(UniProt.ws())
+To get the list of possible columns, call queryup::returnfields and check the field column"
 }
 \examples{
 \dontrun{ 
-up <- UniProt.ws()
-getUPKBInfo(up,c("Q6ZS62","P14384"),c("protein_name","go")) 
+getUPKBInfo(c("Q6ZS62","P14384"),c("protein_name","go")) 
 } 
 }

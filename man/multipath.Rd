@@ -4,18 +4,10 @@
 \alias{multipath}
 \title{Generate Multipath Graph from General Data}
 \usage{
-multipath(
-  name = "Multipath",
-  up = NA,
-  proteinList = NA,
-  data = NA,
-  drugList = NA
-)
+multipath(name = "Multipath", proteinList = NA, data = NA, drugList = NA)
 }
 \arguments{
 \item{name}{The name of the graph to be generated}
-
-\item{up}{The Uniprot.ws() object}
 
 \item{proteinList}{The list of proteins of which the interactions should be retrieved}
 
