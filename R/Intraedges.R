@@ -1,6 +1,5 @@
 #' Get UniProt Proteins to DrugBank Drugs relations from UniProt
 #'
-#' @param up The UniProt.ws Object
 #' @param proteinList The list of UniProt Ids of the proteins
 #' @param drugList The ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).
 #'
@@ -8,15 +7,12 @@
 #' @export
 #'
 #' 
-#' @note
-#' Should be preceded by UniProt.ws() to get the UniProt.ws Object
 #' @examples
 #' \dontrun{ 
-#' up=UniProt.ws()
-#' getUPKBtoDB(up,c("P02747","P00734","P07204"),c("DB00001","DB00002"))
+#' getUPKBtoDB(c("P02747","P00734","P07204"),c("DB00001","DB00002"))
 #' }
-getUPKBtoDB<-function(up,proteinList,drugList){
-  allRelations=getUPKBInfo(up,proteinList,col = c("xref_drugbank"))
+getUPKBtoDB<-function(proteinList,drugList){
+  allRelations=getUPKBInfo(proteinList,col = c("xref_drugbank"))
   names(allRelations)=c("upid","dbid")
   allRelations=allRelations[order(allRelations$upid),]
   if(missing(drugList)){
@@ -26,11 +22,11 @@ getUPKBtoDB<-function(up,proteinList,drugList){
   if(rows==0)
     return(allRelations)
   for(i in 1:rows){
-    listInter=as.list(str_split(allRelations[i,2],"DB"))[[1]]
+    listInter=as.list(str_split(allRelations[i,2],";"))[[1]]
     for(j in 1:length(listInter)){
       if("" == listInter[j])
         next()
-      entry=c(allRelations[i,1],paste0("DB",listInter[j]))
+      entry=c(allRelations[i,1],listInter[j])
       allRelations[dim(allRelations)[1]+1,]=entry
     }
   }
@@ -105,7 +101,6 @@ getDBtoUPKB<-function(data,drugList,proteinList){
 
 #' Get Protein and Drugs relations from UniProt and DrugBank
 #'
-#' @param up The UniProt.ws Object
 #' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
 #' @param proteinList The list of UniProt Ids of the proteins
 #' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
@@ -116,16 +111,14 @@ getDBtoUPKB<-function(data,drugList,proteinList){
 #' 
 #' @note
 #' Should be preceded by:
-#' 1. UniProt.ws() to get the UniProt.ws Object
-#' 2. loadDBXML(DrugBankFile) to get the argument data
+#' loadDBXML(DrugBankFile) to get the argument data
 #' @examples
 #' \dontrun{
-#' up=UniProt.ws() 
 #' data=readDBXML(DBXMLFilePath)
-#' relations=getUPKBDBRelations(up,data,c("P02747","P05164"),c("DB00001","DB00006"))
+#' relations=getUPKBDBRelations(data,c("P02747","P05164"),c("DB00001","DB00006"))
 #' }
-getUPKBDBRelations<-function(up,data,proteinList,drugList){
-  upkbtodb=getUPKBtoDB(up,proteinList,drugList)
+getUPKBDBRelations<-function(data,proteinList,drugList){
+  upkbtodb=getUPKBtoDB(proteinList,drugList)
   dbtoupkb=getDBtoUPKB(data,drugList,proteinList)
   lnames=intersect(names(upkbtodb),names(dbtoupkb))
   upkbtodb$source="UniProt"
@@ -139,26 +132,25 @@ getUPKBDBRelations<-function(up,data,proteinList,drugList){
 
 #' Get UniProt Proteins to KEGG Genes relations from UPKB
 #'
-#' @param up          The UniProt.ws Object
 #' @param proteinList List of Proteins as formatted in UPKB
 #' @param geneList    List of Genes as formatted in KEGG Genes
 #'
 #' @return Dataframe of the Proteins-Genes relation
 #' @export
-#' @author Mohammad Al Maaz
+#' @author Mohammad Al Maaz, Zaynab Hammoud
 #' @examples
-#' up = UniProt.ws()
 #' proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
 #' geneList=c("hsa:122706","hsa:4221","hsa:8312")
-#' UPKB2KEGG = getUPKBtoKEGG(up,geneList,proteinList)
-getUPKBtoKEGG <- function(up, proteinList, geneList) {
-  allRelations = getUPKBInfo(up, proteinList, col = "xref_kegg")
+#' UPKB2KEGG = getUPKBtoKEGG(geneList,proteinList)
+getUPKBtoKEGG <- function(proteinList, geneList) {
+  allRelations = getUPKBInfo(proteinList, col = "xref_kegg")
   allRelations = cbind(allRelations, "source" = "UPKB")
   names(allRelations) = c("UniProt", "keggid", "source")
   allRelations = allRelations[order(allRelations$UniProt),]
   if (missing(geneList)) {
     return(allRelations)
   }
+  allRelations$'keggid'=gsub(";", "",allRelations$'keggid')
   relations = allRelations[which(allRelations$'keggid' %in% geneList),]
   return(relations)
 }
@@ -222,7 +214,6 @@ getKEGGtoOMIM <- function(geneList) {
 #' @author Mohammad Al Maaz
 #' @examples
 #' \dontrun{ 
-#' up = UniProt.ws()
 #' biopax=readBiopax("wnt.owl") 
 #' pathwayID=listPathways(biopax)$id[1]
 #' g=Multipath::pathway2Mully(biopax,pathwayID) #This is a mully graph that contains a protein layer

@@ -19,7 +19,6 @@ Gets the genes and proteins that are referenced to each other
 }
 \examples{
 \dontrun{ 
-up = UniProt.ws()
 biopax=readBiopax("wnt.owl") 
 pathwayID=listPathways(biopax)$id[1]
 g=Multipath::pathway2Mully(biopax,pathwayID) #This is a mully graph that contains a protein layer

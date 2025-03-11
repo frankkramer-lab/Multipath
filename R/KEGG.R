@@ -345,4 +345,3 @@ getRelatedGenes <- function (g, biopax) {
   names(genesfupkb) = c("uniprotid", "keggid", "internalid", "source")
   return(genesfupkb)
 }
-

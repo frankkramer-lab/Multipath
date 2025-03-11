@@ -4,11 +4,9 @@
 \alias{getUPKBtoDB}
 \title{Get UniProt Proteins to DrugBank Drugs relations from UniProt}
 \usage{
-getUPKBtoDB(up, proteinList, drugList)
+getUPKBtoDB(proteinList, drugList)
 }
 \arguments{
-\item{up}{The UniProt.ws Object}
-
 \item{proteinList}{The list of UniProt Ids of the proteins}
 
 \item{drugList}{The ID of the DrugBank drug entry starting with "DB". This argument can be either a string (one drug) or a list of strings (multiple drugs).}
@@ -19,12 +17,8 @@ A dataframe containing the connections between UniProt proteins and DrugBank dru
 \description{
 Get UniProt Proteins to DrugBank Drugs relations from UniProt
 }
-\note{
-Should be preceded by UniProt.ws() to get the UniProt.ws Object
-}
 \examples{
 \dontrun{ 
-up=UniProt.ws()
-getUPKBtoDB(up,c("P02747","P00734","P07204"),c("DB00001","DB00002"))
+getUPKBtoDB(c("P02747","P00734","P07204"),c("DB00001","DB00002"))
 }
 }

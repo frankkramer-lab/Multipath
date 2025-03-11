@@ -4,11 +4,9 @@
 \alias{getUPKBtoKEGG}
 \title{Get UniProt Proteins to KEGG Genes relations from UPKB}
 \usage{
-getUPKBtoKEGG(up, proteinList, geneList)
+getUPKBtoKEGG(proteinList, geneList)
 }
 \arguments{
-\item{up}{The UniProt.ws Object}
-
 \item{proteinList}{List of Proteins as formatted in UPKB}
 
 \item{geneList}{List of Genes as formatted in KEGG Genes}
@@ -20,11 +18,10 @@ Dataframe of the Proteins-Genes relation
 Get UniProt Proteins to KEGG Genes relations from UPKB
 }
 \examples{
-up = UniProt.ws()
 proteinList = c("P02747","P00734","P07204","A0A0S2Z4R0","O15169")
 geneList=c("hsa:122706","hsa:4221","hsa:8312")
-UPKB2KEGG = getUPKBtoKEGG(up,geneList,proteinList)
+UPKB2KEGG = getUPKBtoKEGG(geneList,proteinList)
 }
 \author{
-Mohammad Al Maaz
+Mohammad Al Maaz, Zaynab Hammoud
 }
