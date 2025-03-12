@@ -174,8 +174,7 @@ getUPKBRelatedDiseases <- function (g, biopax) {
     omimid = omimfupkb$omimid[i]
     
     # split the omimid into split of six characters
-    split = substring(omimid, seq(1, nchar(omimid), 6),
-                      seq(6, nchar(omimid) + 5, 6))
+    split = substring(omimid,";")
     for (j in 1:length(split)) {
       new_row = data.frame(extid = omimfupkb$extid[i], omimid = split[j])
       df_omimfupkb = rbind(df_omimfupkb, new_row)
