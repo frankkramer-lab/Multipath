@@ -13,25 +13,24 @@
 #' }
 getUPKBtoDB<-function(proteinList,drugList){
   allRelations=getUPKBInfo(proteinList,col = c("xref_drugbank"))
+  result=data.frame(upid=is.character(c()),dbid=is.character(c()),stringsAsFactors = F)[-1,]
   names(allRelations)=c("upid","dbid")
   allRelations=allRelations[order(allRelations$upid),]
-  if(missing(drugList)){
-    return(allRelations)
-  }
   rows=dim(allRelations)[1]
-  if(rows==0)
-    return(allRelations)
   for(i in 1:rows){
     listInter=as.list(str_split(allRelations[i,2],";"))[[1]]
     for(j in 1:length(listInter)){
       if("" == listInter[j])
         next()
       entry=c(allRelations[i,1],listInter[j])
-      allRelations[dim(allRelations)[1]+1,]=entry
+      result[dim(result)[1]+1,]=entry
     }
   }
-  relations=allRelations[which(allRelations$'dbid'%in%drugList),]
-  return(relations)
+  if(missing(drugList)){
+    return(result)
+  }
+  result=result[which(result$'dbid'%in%drugList),]
+  return(result)
 }
 
 #' Get DrugBank Drugs to UniProt Proteins Relations from DrugBank
