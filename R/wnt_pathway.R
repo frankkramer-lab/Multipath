@@ -1,6 +1,7 @@
 #' Demo function for Wnt Pathway Views
 #'
-#'
+#' @note
+#' This function calls "data", which is supposed to be the parsed DrugBank object. Please refer to loadDBXML().
 #' @export
 #' @importFrom rBiopaxParser readBiopax listPathways
 #' @importFrom mully plot3d
@@ -36,14 +37,14 @@ wntpathway<-function(){
   proteinIDs=unique(proteinMappings[,2])
   upkbtodb=getUPKBtoDB(proteinIDs)
   drugIDs=unique(upkbtodb$dbid)
-  wntmully=addDBLayer(wntmully,dataNew,drugIDs)
+  wntmully=addDBLayer(wntmully,data,drugIDs)
   wntmully=removeLayer(wntmully,"drugs",trans = F)
   newWnt=addDBLayer(mully(name="Wnt Pathway",direct = T),dataNew,drugList = drugIDs)
   newWnt=merge(newWnt,wntmully)
   
   #Merge edges
   upkbtodb=read.csv("mappingsWnt.csv")
-  dbtoupkb=getDBtoUPKB(dataNew,drugIDs,proteinIDs)
+  dbtoupkb=getDBtoUPKB(data,drugIDs,proteinIDs)
   lnames=intersect(names(upkbtodb),names(dbtoupkb))
   upkbtodb$source="UniProt"
   dbtoupkb$source="DrugBank"
@@ -62,5 +63,7 @@ wntpathway<-function(){
     names(attr)=names(newRelations)
     newWnt=mully::addEdge(newWnt,startName,endName,attributes = attr[-2])
   }
+  wntmully=addGenesLayer(wntmully,wntBiopax)
+  wntmully=addDiseaseLayer(wntmully,wntBiopax)
   return(wntmully)
 }

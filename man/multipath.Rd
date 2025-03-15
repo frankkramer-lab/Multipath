@@ -4,7 +4,13 @@
 \alias{multipath}
 \title{Generate Multipath Graph from General Data}
 \usage{
-multipath(name = "Multipath", proteinList = NA, data = NA, drugList = NA)
+multipath(
+  name = "Multipath",
+  proteinList = NA,
+  data = NA,
+  drugList = NA,
+  biopax = NA
+)
 }
 \arguments{
 \item{name}{The name of the graph to be generated}
@@ -14,6 +20,8 @@ multipath(name = "Multipath", proteinList = NA, data = NA, drugList = NA)
 \item{data}{The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)}
 
 \item{drugList}{The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)}
+
+\item{biopax}{A biopax file}
 }
 \value{
 A mully graph with the added data

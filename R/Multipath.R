@@ -4,12 +4,13 @@
 #' @param proteinList The list of proteins of which the interactions should be retrieved
 #' @param data The dataframe containing the parsed information of DrugBank. This argument can be obtained using the function loadDBXML(DrugBankFile)
 #' @param drugList The list of DrugBank Ids of the drugs. This argument can be either a string (one drug) or a list of strings (multiple drugs)
+#' @param biopax A biopax file
 #'
 #' @return A mully graph with the added data
 #' @export
 #' @import mully
 #' @importFrom igraph V
-multipath<-function(name="Multipath",proteinList=NA,data=NA,drugList=NA){
+multipath<-function(name="Multipath",proteinList=NA,data=NA,drugList=NA,biopax=NA){
   g=mully(name,direct=T)
   proteinLayer=F
   drugLayer=F
@@ -38,6 +39,10 @@ multipath<-function(name="Multipath",proteinList=NA,data=NA,drugList=NA){
       g=mully::addEdge(g,startName,endName,attributes = attr[-2])
     }
     message("Multipath: DONE - Adding DrugBank UniProt Edges")
+  }
+  if(!is.na(biopax)){
+    g=addGenesLayer(g,biopax)
+    g=addDiseaseLayer(g,biopax)
   }
   return(g)
 }

@@ -9,3 +9,6 @@ wntpathway()
 \description{
 Demo function for Wnt Pathway Views
 }
+\note{
+This function calls "data", which is supposed to be the parsed DrugBank object. Please refer to loadDBXML().
+}
